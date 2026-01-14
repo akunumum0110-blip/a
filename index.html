@@ -729,4 +729,226 @@
         const div=document.createElement("div");
         div.className="avatar"+(a===STATE.avatar?" sel":"");
         div.textContent=a;
-        div.addEventListener("click",()=>{
+        div.addEventListener("click",()=>{ STATE.avatar=a; renderAvatars(); });
+        avatarRow.appendChild(div);
+      });
+    }
+    renderAvatars();
+
+    btnStart.addEventListener("click",()=>{
+      const name=(playerName.value||"").trim();
+      STATE.name=name?name:"Pemain";
+      startOverlay.style.display="none";
+      ensureAudio();
+      if(STATE.musicOn) startMusic();
+      applyMusicVolume();
+      setHUD(); renderMap();
+      setStatus("Silakan pilih Pos 1 yang menyala.");
+    });
+
+    function renderMap(){
+      map.querySelectorAll(".node").forEach(n=>n.remove());
+      for(let i=0;i<10;i++){
+        const p=NODE_POS[i];
+        const node=document.createElement("div");
+        node.className="node";
+        const locked=(i>STATE.unlocked);
+        const done=STATE.done[i];
+        if(locked) node.classList.add("locked");
+        if(done) node.classList.add("done");
+        if(i===STATE.unlocked && !done) node.classList.add("current");
+        node.style.left=`calc(${p.x}% - 39px)`;
+        node.style.top=`calc(${p.y}% - 39px)`;
+
+        const num=document.createElement("div");
+        num.className="num"; num.textContent=String(i+1);
+
+        const star=document.createElement("div");
+        star.className="star";
+        star.textContent = done ? "✅" : (locked ? "🔒" : "✨");
+
+        node.appendChild(num); node.appendChild(star);
+
+        node.addEventListener("click",()=>{
+          if(locked){ beep("bad"); setStatus("Pos tersebut masih terkunci. Selesaikan pos sebelumnya terlebih dahulu."); return; }
+          if(done){ setStatus("Pos tersebut sudah selesai. Silakan lanjut ke pos berikutnya."); return; }
+          openQuiz(i);
+        });
+
+        map.appendChild(node);
+      }
+    }
+
+    function openQuiz(i){
+      STATE.qIndex=i; STATE.answered=false;
+      feedback.style.display="none";
+      btnContinue.disabled=true; btnContinue.textContent="Lanjut";
+      const q=QUESTIONS[i];
+      qTitle.textContent=`Soal ${i+1}`;
+      qTag.textContent=`Pos ${i+1}/10`;
+      qPrompt.textContent=q.prompt;
+
+      choices.innerHTML="";
+      const letters=["A","B","C","D"];
+      q.choices.forEach((text,idx)=>{
+        const c=document.createElement("div");
+        c.className="choice";
+        c.dataset.idx=String(idx);
+
+        const letter=document.createElement("div");
+        letter.className="letter";
+        letter.textContent=letters[idx]+".";
+
+        const span=document.createElement("div");
+        span.textContent=text;
+
+        c.appendChild(letter); c.appendChild(span);
+        c.addEventListener("click",()=>choose(idx,c));
+        choices.appendChild(c);
+      });
+
+      miniHint.textContent="Keterangan: Anda dapat menggunakan Pelindung sebelum menjawab.";
+      overlay.style.display="flex";
+      setStatus(`Soal pada Pos ${i+1} sedang dikerjakan.`);
+    }
+
+    function closeQuiz(){
+      overlay.style.display="none";
+      STATE.qIndex=null; STATE.answered=false;
+      if(STATE.restartPending){
+        STATE.restartPending = false;
+        resetGame();
+      }
+    }
+
+    function choose(idx, el){
+      if(STATE.answered) return;
+      STATE.answered=true;
+
+      const i=STATE.qIndex;
+      const q=QUESTIONS[i];
+
+      const all=[...choices.children];
+      all.forEach(c=>c.style.pointerEvents="none");
+
+      const correct=q.correct;
+      const isCorrect=(idx===correct);
+
+      all.forEach(c=>{
+        const j=Number(c.dataset.idx);
+        if(j===correct) c.classList.add("correct");
+      });
+      if(!isCorrect) el.classList.add("wrong");
+
+      if(isCorrect){
+        const comboBonus=clamp(STATE.streak*2,0,10);
+        STATE.score += 10 + comboBonus;
+        STATE.streak += 1;
+
+        STATE.done[i]=true;
+        STATE.progress += 1;
+        if(STATE.unlocked===i && i<9) STATE.unlocked=i+1;
+
+        fbMain.innerHTML = `✅ <b>Jawaban benar.</b> +${10+comboBonus} (bonus kombo: +${comboBonus})`;
+        fbExplain.textContent = q.explain;
+
+        spawnConfetti(true); beep("good");
+        setStatus(`Pos ${i+1} selesai. Silakan lanjut ke pos berikutnya.`);
+      }else{
+        STATE.streak = 0;
+        if(STATE.shieldActive){
+          STATE.shieldActive=false;
+          fbMain.innerHTML = `🛡️ <b>Pelindung aktif.</b> Nyawa tidak berkurang.`;
+          fbExplain.textContent = `Jawaban benar: ${["A","B","C","D"][correct]}. ${q.explain}`;
+        }else{
+          STATE.lives -= 1;
+          fbMain.innerHTML = `❌ <b>Jawaban belum tepat.</b> Nyawa berkurang 1.`;
+          if(STATE.lives<=0){
+            fbMain.innerHTML = `💥 <b>Nyawa habis.</b> Permainan akan diulang dari awal.`;
+          }
+          fbExplain.textContent = `Jawaban benar: ${["A","B","C","D"][correct]}. ${q.explain}`;
+        }
+        spawnConfetti(false); beep("bad");
+        if(STATE.lives<=0){
+          STATE.restartPending = true;
+          setStatus("Nyawa habis. Permainan akan diulang dari awal.");
+        }else{
+          setStatus("Silakan coba kembali pada pos yang sama.");
+        }
+      }
+
+      feedback.style.display="block";
+      btnContinue.disabled=false;
+
+      const best=bestScoreGet();
+      if(STATE.score>best) bestScoreSet(STATE.score);
+
+      setHUD(); renderMap();
+
+      if(STATE.progress===10){
+        setStatus("Seluruh pos telah selesai. Selamat, Anda berhasil menyelesaikan misi.");
+        btnContinue.textContent="Selesai";
+      }
+    }
+
+    btnQuit.addEventListener("click",()=>closeQuiz());
+    btnContinue.addEventListener("click",()=>closeQuiz());
+
+    btnSound.addEventListener("click",()=>{
+      STATE.sfxOn = !STATE.sfxOn;
+      setHUD();
+      if(STATE.sfxOn) beep("good");
+    });
+
+    btnMusic.addEventListener("click",()=>{
+      STATE.musicOn = !STATE.musicOn;
+      ensureAudio();
+      if(STATE.musicOn){
+        startMusic(); applyMusicVolume();
+        setStatus("Musik latar dinyalakan.");
+        beep("good");
+      }else{
+        stopMusic();
+        setStatus("Musik latar dimatikan.");
+      }
+      setHUD();
+    });
+
+    btnMuteQuick.addEventListener("click",()=>{
+      STATE.musicOn = false;
+      STATE.sfxOn = false;
+      stopMusic();
+      setHUD();
+      setStatus("Mode senyap diaktifkan (musik dan efek dimatikan).");
+    });
+
+    btnReset.addEventListener("click",()=>resetGame());
+
+    const INFO_CARDS = [
+      "📌 Persegi panjang: L = p × l. Persegi: L = s². Keliling persegi: K = 4s.",
+      "📌 Trapesium: L = ½(a+b)×t. Jika ditanya (a+b), gunakan (a+b)=2L/t.",
+      "📌 Belah ketupat dan layang-layang: L = ½×d1×d2 (pastikan dibagi 2).",
+      "📌 Disarankan: gunakan Pelindung saat ragu terhadap jawaban."
+    ];
+    let infoIdx=0;
+    btnInfo.addEventListener("click",()=>{
+      infoIdx=(infoIdx+1)%INFO_CARDS.length;
+      sideTips.innerHTML = `<b>Ringkasan materi:</b><br/>${INFO_CARDS[infoIdx]}`;
+      if(STATE.sfxOn) beep("good");
+      setStatus("Ringkasan materi diperbarui pada panel kanan.");
+    });
+
+    btnShield.addEventListener("click",()=>{
+      if(STATE.shieldActive){ setStatus("Pelindung sudah aktif."); return; }
+      if(STATE.shieldLeft<=0){ beep("bad"); setStatus("Pelindung sudah habis."); return; }
+      STATE.shieldLeft -= 1;
+      STATE.shieldActive = true;
+      miniHint.textContent="🛡️ Pelindung aktif: satu kesalahan berikutnya tidak akan mengurangi nyawa.";
+      setHUD(); beep("good");
+    });
+
+    setHUD(); renderMap();
+    setStatus("Siap memulai. Silakan kerjakan Pos 1.");
+  </script>
+</body>
+</html>
