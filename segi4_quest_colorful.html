@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SEGI4 Quest (Colorful) — Game Quiz Segiempat Kelas 7</title>
+  <style>
+    :root{
+      --bg1:#0b1026;
+      --bg2:#1a0b2e;
+      --stroke:rgba(255,255,255,.16);
+      --text:#f4f6ff;
+      --muted:rgba(244,246,255,.78);
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    body{
+      margin:0;
+      color:var(--text);
+      background: radial-gradient(1100px 700px at 15% 10%, rgba(124,92,255,.35), transparent 60%),
+                  radial-gradient(900px 600px at 85% 20%, rgba(51,209,255,.28), transparent 60%),
+                  radial-gradient(1000px 700px at 50% 90%, rgba(255,209,102,.18), transparent 60%),
+                  linear-gradient(160deg, var(--bg1), var(--bg2));
+    }
+    .wrap{max-width:1020px;margin:0 auto;padding:14px;}
+    .top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;}
+    h1{margin:8px 0 6px;font-size:20px;letter-spacing:.2px}
+    .subtitle{margin:0 0 10px;color:var(--muted);font-size:13px;line-height:1.4}
+    .chips{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px;}
+    .chip{
+      padding:8px 10px;border-radius:999px;
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border:1px solid var(--stroke);
+      font-size:13px;
+      backdrop-filter: blur(8px);
+    }
+    .hud{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      padding:2px 6px;border-radius:10px;border:1px solid var(--stroke);
+      background:rgba(0,0,0,.18);
+    }
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      padding:12px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    canvas{
+      width:100%;height:auto;border-radius:18px;border:1px solid var(--stroke);
+      background:transparent;touch-action:none;box-shadow: var(--shadow);
+    }
+    .controls{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:12px;}
+    .pad{display:grid;grid-template-columns:58px 58px 58px;grid-template-rows:58px 58px 58px;gap:10px;}
+    .btn{
+      user-select:none;-webkit-user-select:none;
+      display:flex;align-items:center;justify-content:center;
+      border-radius:16px;font-weight:900;font-size:18px;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.07));
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+      cursor:pointer;touch-action:manipulation;
+    }
+    .btn:active{transform:scale(.98)}
+    .btn.empty{background:transparent;border:none;box-shadow:none;cursor:default}
+    .btnWide{padding:12px 14px}
+    .btnPrimary{
+      background: linear-gradient(135deg, rgba(124,92,255,.65), rgba(51,209,255,.55));
+      border-color: rgba(255,255,255,.22);
+    }
+    .small{font-size:12px;color:var(--muted);line-height:1.35;max-width:520px}
+    .result{display:none;margin-top:10px}
+    .result h3{margin:0 0 6px}
+    .result .grid{display:grid;gap:6px;color:var(--muted)}
+    .result b{color:#fff}
+
+    /* Quiz overlay */
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;
+      background: radial-gradient(900px 600px at 50% 0%, rgba(124,92,255,.28), transparent 65%),
+                  rgba(0,0,0,.72);
+      backdrop-filter: blur(8px);
+    }
+    .qCard{
+      width:min(860px, 100%);
+      border-radius:22px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      box-shadow: var(--shadow);
+    }
+    .qHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .qHead h2{margin:0;font-size:16px}
+    .tag{
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.18);
+      font-size:12px;color:var(--muted)
+    }
+    .prompt{margin:10px 0 12px;line-height:1.5;color:#fff}
+    .choices{display:grid;grid-template-columns:1fr;gap:10px}
+    .choice{
+      padding:12px;border-radius:16px;border:1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      cursor:pointer;
+    }
+    .choice:hover{border-color: rgba(255,255,255,.30)}
+    .choice:active{transform:scale(.99)}
+    .choice strong{display:inline-block;min-width:26px}
+    .choice.correct{border-color: rgba(39,245,159,.9); box-shadow: 0 0 0 3px rgba(39,245,159,.16) inset;}
+    .choice.wrong{border-color: rgba(255,95,122,.9); box-shadow: 0 0 0 3px rgba(255,95,122,.14) inset;}
+
+    .feedback{display:none;margin-top:12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.18)
+    }
+    .feedback .line{margin:6px 0}
+    .qFoot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:12px}
+    .qFoot .left{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .qFoot .right{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn2{
+      padding:10px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.18);color:var(--text);font-weight:900;cursor:pointer;
+    }
+    .btn2.primary{background: linear-gradient(135deg, rgba(124,92,255,.65), rgba(51,209,255,.55));}
+    .btn2.danger{background: rgba(255,95,122,.15)}
+    .muted{color:var(--muted);font-size:12px;line-height:1.35}
+
+    @media (min-width: 860px){
+      .wrap{padding:18px}
+      h1{font-size:22px}
+      .choices{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="panel" style="flex:1;min-width:280px">
+        <h1>SEGI4 Quest (Colorful)</h1>
+        <p class="subtitle">Adventure quiz segiempat untuk kelas 7: jalanin karakter → buka terminal soal → kumpulkan skor. Cocok untuk HP & laptop.</p>
+        <div class="chips">
+          <div class="chip">Gerak: <span class="kbd">WASD</span>/<span class="kbd">←↑→↓</span> atau tombol layar</div>
+          <div class="chip">Dekati kotak bernomor untuk soal</div>
+          <div class="chip">+10 benar • −1 nyawa saat salah</div>
+        </div>
+        <div class="hud chips">
+          <div class="chip" id="hudScore">Skor: <b>0</b></div>
+          <div class="chip" id="hudLives">Nyawa: <b>3</b></div>
+          <div class="chip" id="hudDone">Selesai: <b>0/10</b></div>
+        </div>
+      </div>
+
+      <div class="panel" style="min-width:260px;max-width:360px">
+        <div class="small">
+          <div><b>Catatan:</b> Soal #7 dibetulkan (tinggi 6 m → jumlah sisi sejajar 24 m) agar sesuai opsi.</div>
+          <div style="margin-top:6px">Tips: tekan <b>Hint</b> kalau butuh bantuan.</div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <div class="btn btnWide btnPrimary" id="btnRestart">↻ Restart</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
+    <canvas id="game" width="960" height="540"></canvas>
+
+    <div class="controls">
+      <div class="pad" aria-label="Kontrol arah">
+        <div class="btn empty"></div>
+        <div class="btn" id="btnUp">↑</div>
+        <div class="btn empty"></div>
+        <div class="btn" id="btnLeft">←</div>
+        <div class="btn" id="btnStop">■</div>
+        <div class="btn" id="btnRight">→</div>
+        <div class="btn empty"></div>
+        <div class="btn" id="btnDown">↓</div>
+        <div class="btn empty"></div>
+      </div>
+
+      <div class="panel" style="flex:1;min-width:260px">
+        <div class="small">
+          <b>Goal:</b> Selesaikan 10 terminal. Terminal hijau = sudah benar.
+        </div>
+        <div class="result" id="resultBox">
+          <h3>Hasil</h3>
+          <div class="grid" id="resultText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Overlay -->
+  <div class="overlay" id="quizOverlay">
+    <div class="qCard">
+      <div class="qHead">
+        <h2 id="qHeader">Soal</h2>
+        <div class="tag" id="qTag">Terminal</div>
+      </div>
+
+      <div class="prompt" id="qPrompt"></div>
+
+      <div class="choices">
+        <div class="choice" id="c0"><strong>A.</strong> <span id="t0"></span></div>
+        <div class="choice" id="c1"><strong>B.</strong> <span id="t1"></span></div>
+        <div class="choice" id="c2"><strong>C.</strong> <span id="t2"></span></div>
+        <div class="choice" id="c3"><strong>D.</strong> <span id="t3"></span></div>
+      </div>
+
+      <div class="feedback" id="feedback">
+        <div class="line" id="fbMain"></div>
+        <div class="line muted" id="fbExplain"></div>
+      </div>
+
+      <div class="qFoot">
+        <div class="left">
+          <button class="btn2" id="btnHint">Hint</button>
+          <div class="muted" id="hintText"></div>
+        </div>
+        <div class="right">
+          <button class="btn2 danger" id="btnClose">Tutup</button>
+          <button class="btn2 primary" id="btnNext">Lanjut</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {prompt:"Bangun datar yang memiliki dua pasang sisi berhadapan sejajar dan sama panjang adalah …",choices:["Trapesium","Layang-layang","Jajar genjang","Belah ketupat"],correct:2,hint1:"Ciri kunci: ada 2 pasang sisi sejajar.",hint2:"Pada jajar genjang, sisi berhadapan sejajar dan sama panjang.",explain:"Jajar genjang memiliki dua pasang sisi berhadapan sejajar dan sama panjang."},
+      {prompt:"“Bangun datar ini memiliki empat sisi sama panjang dan diagonalnya saling tegak lurus.” Bangun datar yang dimaksud adalah …",choices:["Persegi panjang","Jajar genjang","Belah ketupat","Trapesium"],correct:2,hint1:"Cari bangun dengan 4 sisi sama panjang.",hint2:"Diagonal yang saling tegak lurus adalah ciri belah ketupat.",explain:"Belah ketupat memiliki 4 sisi sama panjang dan diagonalnya saling tegak lurus."},
+      {prompt:"Sebuah lapangan berbentuk persegi panjang memiliki panjang 20 m dan lebar 15 m. Luas lapangan tersebut adalah …",choices:["150 m²","300 m²","350 m²","600 m²"],correct:1,hint1:"Luas persegi panjang = p × l.",hint2:"20 × 15 = 300.",explain:"L = 20 × 15 = 300 m²."},
+      {prompt:"Sebuah taman berbentuk trapesium memiliki sisi sejajar masing-masing 14 m dan 10 m serta tinggi 6 m. Langkah yang tepat untuk menentukan luas taman tersebut adalah …",choices:["Menjumlahkan semua sisi lalu dibagi 2","Mengalikan kedua sisi sejajar","Menjumlahkan sisi sejajar, dikalikan tinggi, lalu dibagi 2","Mengalikan sisi sejajar terpanjang dengan tinggi"],correct:2,hint1:"Rumus trapesium: ½(a+b)×t.",hint2:"Jumlah sisi sejajar dulu, kali tinggi, lalu bagi 2.",explain:"Luas trapesium: ½(a+b)×t."},
+      {prompt:"Ana menghitung luas belah ketupat dengan diagonal 12 cm dan 16 cm: L = 12 × 16 = 192 cm². Kesalahan Ana terletak pada …",choices:["Salah memilih rumus","Tidak membagi hasil perkalian dengan 2","Salah mengukur diagonal","Salah menentukan satuan"],correct:1,hint1:"Rumus belah ketupat ada faktor ½.",hint2:"L = ½×d1×d2, jadi hasil perkalian harus dibagi 2.",explain:"Seharusnya L = ½×12×16 = 96 cm². Ana lupa membagi 2."},
+      {prompt:"Sebuah taman sekolah akan dibuat berbentuk persegi dengan luas 64 m². Panjang sisi taman yang tepat adalah …",choices:["6 m","7 m","8 m","9 m"],correct:2,hint1:"Luas persegi = s².",hint2:"s = √64 = 8.",explain:"s = √64 = 8 m."},
+      {prompt:"Sebuah kolam ikan dirancang berbentuk trapesium dengan luas 72 m² dan tinggi 6 m. Jumlah panjang dua sisi sejajar kolam tersebut adalah …",choices:["12 m","18 m","24 m","30 m"],correct:2,hint1:"Gunakan L = ½(a+b)×t.",hint2:"(a+b) = 2L/t = 2×72/6 = 24.",explain:"Jumlah sisi sejajar: (a+b)=2L/t=24 m."},
+      {prompt:"Sebuah hiasan dinding berbentuk layang-layang memiliki luas 120 cm². Jika salah satu diagonalnya 20 cm, maka panjang diagonal lainnya adalah …",choices:["8 cm","12 cm","16 cm","20 cm"],correct:1,hint1:"Layang-layang: L = ½×d1×d2.",hint2:"d2 = 2L/d1 = 240/20 = 12.",explain:"d2 = 12 cm."},
+      {prompt:"Sebuah papan reklame berbentuk jajar genjang memiliki luas 150 m². Jika tinggi papan 10 m, maka panjang alas papan reklame yang mungkin adalah …",choices:["10 m","12 m","15 m","20 m"],correct:2,hint1:"Jajar genjang: L = alas × tinggi.",hint2:"alas = 150/10 = 15.",explain:"alas = 150 ÷ 10 = 15 m."},
+      {prompt:"Sebuah meja belajar berbentuk persegi dengan keliling 96 cm. Panjang sisi meja tersebut adalah …",choices:["20 cm","22 cm","24 cm","26 cm"],correct:2,hint1:"Keliling persegi = 4s.",hint2:"s = 96/4 = 24.",explain:"s = 24 cm."},
+    ];
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const player = { x: 100, y: 110, r: 15, vx: 0, vy: 0, speed: 2.8, bob: 0 };
+    const keys = { up:false, down:false, left:false, right:false };
+    let running = true;
+
+    let score = 0;
+    let lives = 3;
+    let done = Array(questions.length).fill(false);
+    let doneCount = 0;
+
+    const hudScore = document.getElementById("hudScore");
+    const hudLives = document.getElementById("hudLives");
+    const hudDone  = document.getElementById("hudDone");
+    const resultBox = document.getElementById("resultBox");
+    const resultText = document.getElementById("resultText");
+
+    // Quiz overlay elements
+    const overlay = document.getElementById("quizOverlay");
+    const qHeader = document.getElementById("qHeader");
+    const qTag = document.getElementById("qTag");
+    const qPrompt = document.getElementById("qPrompt");
+    const t0 = document.getElementById("t0");
+    const t1 = document.getElementById("t1");
+    const t2 = document.getElementById("t2");
+    const t3 = document.getElementById("t3");
+    const c0 = document.getElementById("c0");
+    const c1 = document.getElementById("c1");
+    const c2 = document.getElementById("c2");
+    const c3 = document.getElementById("c3");
+    const feedback = document.getElementById("feedback");
+    const fbMain = document.getElementById("fbMain");
+    const fbExplain = document.getElementById("fbExplain");
+    const btnHint = document.getElementById("btnHint");
+    const hintText = document.getElementById("hintText");
+    const btnClose = document.getElementById("btnClose");
+    const btnNext = document.getElementById("btnNext");
+
+    // World
+    const walls = [
+      {x: 40, y: 70, w: 880, h: 20},{x: 40, y: 70, w: 20, h: 420},{x: 40, y: 470, w: 880, h: 20},{x: 900, y: 70, w: 20, h: 420},
+      {x: 160, y: 120, w: 20, h: 280},{x: 320, y: 70,  w: 20, h: 280},{x: 480, y: 260, w: 20, h: 230},{x: 640, y: 70,  w: 20, h: 280},{x: 800, y: 260, w: 20, h: 230},
+      {x: 180, y: 380, w: 140, h: 20},{x: 340, y: 180, w: 140, h: 20},{x: 500, y: 180, w: 140, h: 20},{x: 660, y: 380, w: 140, h: 20},
+    ];
+    const terminals = [
+      {id:0, x:110, y:160, w:42, h:42},{id:1, x:110, y:420, w:42, h:42},{id:2, x:270, y:100, w:42, h:42},{id:3, x:270, y:420, w:42, h:42},
+      {id:4, x:430, y:100, w:42, h:42},{id:5, x:430, y:420, w:42, h:42},{id:6, x:590, y:100, w:42, h:42},{id:7, x:590, y:420, w:42, h:42},
+      {id:8, x:750, y:100, w:42, h:42},{id:9, x:750, y:420, w:42, h:42},
+    ];
+
+    // Effects
+    const confetti = [];
+    function rand(a,b){ return a + Math.random()*(b-a); }
+    function spawnConfetti(x,y,good=true){
+      const n = 36;
+      for(let i=0;i<n;i++){
+        confetti.push({x,y,vx:rand(-3.0,3.0),vy:rand(-6.0,-1.0),g:rand(0.14,0.22),life:rand(34,70),r:rand(2,5),hue:good?rand(120,200):rand(330,15),a:1});
+      }
+    }
+
+    function setHUD(){
+      hudScore.innerHTML = `Skor: <b>${score}</b>`;
+      hudLives.innerHTML = `Nyawa: <b>${lives}</b>`;
+      hudDone.innerHTML  = `Selesai: <b>${doneCount}/${questions.length}</b>`;
+    }
+
+    function showResult(){
+      resultBox.style.display = "block";
+      const status = (lives <= 0) ? "Gagal (nyawa habis)" : (doneCount === questions.length ? "Selesai (semua terminal beres)" : "Berjalan");
+      const akurasi = doneCount ? Math.round((score / (doneCount*10)) * 100) : 0;
+      resultText.innerHTML = `
+        <div>Status: <b>${status}</b></div>
+        <div>Skor akhir: <b>${score}</b></div>
+        <div>Terminal selesai: <b>${doneCount}</b> dari <b>${questions.length}</b></div>
+        <div>Akurasi benar (approx): <b>${akurasi}%</b></div>
+      `;
+    }
+
+    function resetGame(){
+      score = 0; lives = 3; done = Array(questions.length).fill(false); doneCount = 0;
+      player.x = 100; player.y = 110;
+      resultBox.style.display = "none";
+      overlay.style.display = "none";
+      activeTerminal = null; answered = false; hintStage = 0;
+      confetti.length = 0;
+      running = true;
+      setHUD();
+    }
+
+    // Collision
+    function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+    function circleRectCollide(cx, cy, r, rect){
+      const nx = clamp(cx, rect.x, rect.x + rect.w);
+      const ny = clamp(cy, rect.y, rect.y + rect.h);
+      const dx = cx - nx, dy = cy - ny;
+      return (dx*dx + dy*dy) <= r*r;
+    }
+    function resolveCircleRect(p, rect){
+      const closestX = clamp(p.x, rect.x, rect.x + rect.w);
+      const closestY = clamp(p.y, rect.y, rect.y + rect.h);
+      let dx = p.x - closestX, dy = p.y - closestY;
+      const dist2 = dx*dx + dy*dy;
+      if (dist2 === 0){ dx = (p.x < rect.x + rect.w/2) ? -1 : 1; dy = (p.y < rect.y + rect.h/2) ? -1 : 1; }
+      const dist = Math.sqrt(dist2 || 1);
+      const overlap = p.r - dist;
+      if (overlap > 0){ p.x += (dx/dist) * overlap; p.y += (dy/dist) * overlap; }
+    }
+
+    // Quiz
+    let activeTerminal = null;
+    let answered = false;
+    let hintStage = 0;
+
+    function openQuiz(terminalId){
+      if(done[terminalId]) return;
+      activeTerminal = terminalId;
+      const q = questions[terminalId];
+      answered = false; hintStage = 0;
+      hintText.textContent = "";
+      feedback.style.display = "none";
+      [c0,c1,c2,c3].forEach(c => c.classList.remove("correct","wrong"));
+      qHeader.textContent = `Soal ${terminalId+1}`;
+      qTag.textContent = `Terminal ${terminalId+1}`;
+      qPrompt.textContent = q.prompt;
+      t0.textContent = q.choices[0]; t1.textContent = q.choices[1]; t2.textContent = q.choices[2]; t3.textContent = q.choices[3];
+      overlay.style.display = "flex";
+      running = false;
+    }
+    function closeQuiz(){ overlay.style.display = "none"; running = true; activeTerminal = null; }
+
+    function chooseAnswer(idx){
+      if(activeTerminal === null || answered) return;
+      answered = true;
+      const q = questions[activeTerminal];
+      const correct = q.correct;
+      const els = [c0,c1,c2,c3];
+      const term = terminals[activeTerminal];
+      const cx = term.x + term.w/2, cy = term.y + term.h/2;
+
+      if(idx === correct){
+        score += 10; done[activeTerminal]=true; doneCount += 1;
+        fbMain.innerHTML = `✅ <b>Benar!</b> (+10)`; fbExplain.textContent = q.explain;
+        els[idx].classList.add("correct");
+        spawnConfetti(cx, cy, true);
+      }else{
+        lives -= 1;
+        fbMain.innerHTML = `❌ <b>Belum tepat.</b> Nyawa −1`; fbExplain.textContent = `Hint: ${q.hint1}`;
+        els[idx].classList.add("wrong"); els[correct].classList.add("correct");
+        spawnConfetti(cx, cy, false);
+      }
+      feedback.style.display = "block";
+      setHUD();
+
+      if(lives <= 0){ closeQuiz(); showResult(); }
+      else if(doneCount === questions.length){ closeQuiz(); showResult(); }
+    }
+
+    btnHint.addEventListener("click", ()=>{
+      if(activeTerminal === null) return;
+      const q = questions[activeTerminal];
+      hintStage += 1;
+      hintText.textContent = (hintStage === 1) ? q.hint1 : q.hint2;
+    });
+    btnClose.addEventListener("click", ()=>closeQuiz());
+    btnNext.addEventListener("click", ()=>closeQuiz());
+    c0.addEventListener("click", ()=>chooseAnswer(0));
+    c1.addEventListener("click", ()=>chooseAnswer(1));
+    c2.addEventListener("click", ()=>chooseAnswer(2));
+    c3.addEventListener("click", ()=>chooseAnswer(3));
+
+    // Keyboard
+    window.addEventListener("keydown",(e)=>{
+      const k = e.key.toLowerCase();
+      if(k==="arrowup"||k==="w") keys.up=true;
+      if(k==="arrowdown"||k==="s") keys.down=true;
+      if(k==="arrowleft"||k==="a") keys.left=true;
+      if(k==="arrowright"||k==="d") keys.right=true;
+    });
+    window.addEventListener("keyup",(e)=>{
+      const k = e.key.toLowerCase();
+      if(k==="arrowup"||k==="w") keys.up=false;
+      if(k==="arrowdown"||k==="s") keys.down=false;
+      if(k==="arrowleft"||k==="a") keys.left=false;
+      if(k==="arrowright"||k==="d") keys.right=false;
+    });
+
+    // Touch controls
+    function bindHold(btn, onDown, onUp){
+      const down = (e)=>{ e.preventDefault(); onDown(); };
+      const up   = (e)=>{ e.preventDefault(); onUp(); };
+      btn.addEventListener("pointerdown", down);
+      btn.addEventListener("pointerup", up);
+      btn.addEventListener("pointercancel", up);
+      btn.addEventListener("pointerleave", up);
+    }
+    bindHold(document.getElementById("btnUp"),    ()=>keys.up=true,    ()=>keys.up=false);
+    bindHold(document.getElementById("btnDown"),  ()=>keys.down=true,  ()=>keys.down=false);
+    bindHold(document.getElementById("btnLeft"),  ()=>keys.left=true,  ()=>keys.left=false);
+    bindHold(document.getElementById("btnRight"), ()=>keys.right=true, ()=>keys.right=false);
+    document.getElementById("btnStop").addEventListener("click", ()=>{ keys.up=keys.down=keys.left=keys.right=false; });
+    document.getElementById("btnRestart").addEventListener("click", resetGame);
+
+    // Drawing helpers
+    function roundRect(x,y,w,h,r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr,y);
+      ctx.arcTo(x+w,y,x+w,y+h,rr);
+      ctx.arcTo(x+w,y+h,x,y+h,rr);
+      ctx.arcTo(x,y+h,x,y,rr);
+      ctx.arcTo(x,y,x+w,y,rr);
+      ctx.closePath();
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      // Background gradient
+      const g = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+      g.addColorStop(0, "rgba(124,92,255,0.18)");
+      g.addColorStop(0.5,"rgba(51,209,255,0.10)");
+      g.addColorStop(1, "rgba(255,209,102,0.08)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      // Grid
+      ctx.save();
+      ctx.globalAlpha = 0.10;
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1;
+      for(let x=0; x<canvas.width; x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+      for(let y=0; y<canvas.height; y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+      ctx.restore();
+
+      // Walls
+      ctx.save();
+      for(const w of walls){
+        const wg = ctx.createLinearGradient(w.x,w.y,w.x+w.w,w.y+w.h);
+        wg.addColorStop(0,"rgba(255,255,255,0.10)");
+        wg.addColorStop(1,"rgba(255,255,255,0.05)");
+        ctx.fillStyle = wg;
+        ctx.strokeStyle = "rgba(255,255,255,0.16)";
+        ctx.lineWidth = 2;
+        roundRect(w.x,w.y,w.w,w.h,10);
+        ctx.fill(); ctx.stroke();
+      }
+      ctx.restore();
+
+      // Terminals
+      for(const t of terminals){
+        const doneThis = done[t.id];
+        const hue = doneThis ? 145 : (t.id*32) % 360;
+        const fill = doneThis ? `hsla(${hue}, 80%, 52%, 0.42)` : `hsla(${hue}, 85%, 56%, 0.25)`;
+        const stroke = doneThis ? `hsla(${hue}, 90%, 70%, 0.90)` : `hsla(${hue}, 90%, 70%, 0.65)`;
+        ctx.save();
+        ctx.shadowColor = stroke;
+        ctx.shadowBlur = doneThis ? 18 : 12;
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 3;
+        roundRect(t.x,t.y,t.w,t.h,12);
+        ctx.fill(); ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "rgba(255,255,255,0.95)";
+        ctx.font = "900 15px system-ui, sans-serif";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(String(t.id+1), t.x+t.w/2, t.y+t.h/2);
+        ctx.restore();
+      }
+
+      // Confetti
+      for(let i=confetti.length-1;i>=0;i--){
+        const p = confetti[i];
+        p.x += p.vx; p.y += p.vy; p.vy += p.g; p.life -= 1; p.a = Math.max(0, p.life/70);
+        if(p.life <= 0){ confetti.splice(i,1); continue; }
+        ctx.save();
+        ctx.globalAlpha = p.a;
+        ctx.fillStyle = `hsla(${p.hue}, 90%, 62%, ${p.a})`;
+        ctx.translate(p.x, p.y);
+        roundRect(-p.r, -p.r, p.r*2, p.r*2, 2.5);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Player
+      player.bob += 0.10;
+      const bob = Math.sin(player.bob) * 1.2;
+      ctx.save();
+      ctx.shadowColor = "rgba(51,209,255,0.8)";
+      ctx.shadowBlur = 16;
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.strokeStyle = "rgba(0,0,0,0.25)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y + bob, player.r, 0, Math.PI*2);
+      ctx.fill(); ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "rgba(0,0,0,0.65)";
+      ctx.beginPath(); ctx.arc(player.x-5, player.y-3 + bob, 2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(player.x+5, player.y-3 + bob, 2, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.55)";
+      ctx.beginPath(); ctx.arc(player.x, player.y+3 + bob, 5, 0, Math.PI); ctx.stroke();
+      ctx.restore();
+
+      // Overlay messages
+      if(lives <= 0){
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = "#fff";
+        ctx.font = "900 34px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Nyawa habis!", canvas.width/2, canvas.height/2 - 12);
+        ctx.font = "16px system-ui, sans-serif";
+        ctx.fillText("Klik Restart untuk coba lagi.", canvas.width/2, canvas.height/2 + 18);
+        ctx.restore();
+      } else if(doneCount === questions.length){
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.48)";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = "#fff";
+        ctx.font = "900 34px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Semua terminal selesai!", canvas.width/2, canvas.height/2 - 12);
+        ctx.font = "16px system-ui, sans-serif";
+        ctx.fillText("Scroll sedikit untuk lihat hasil.", canvas.width/2, canvas.height/2 + 18);
+        ctx.restore();
+      }
+    }
+
+    function update(){
+      requestAnimationFrame(update);
+      if(!running){ draw(); return; }
+
+      let vx = 0, vy = 0;
+      if(keys.up) vy -= 1;
+      if(keys.down) vy += 1;
+      if(keys.left) vx -= 1;
+      if(keys.right) vx += 1;
+      const mag = Math.hypot(vx,vy) || 1;
+      player.vx = (vx/mag) * player.speed;
+      player.vy = (vy/mag) * player.speed;
+
+      player.x += player.vx;
+      player.y += player.vy;
+
+      for(const w of walls){
+        if(circleRectCollide(player.x, player.y, player.r, w)) resolveCircleRect(player, w);
+      }
+
+      for(const t of terminals){
+        if(done[t.id]) continue;
+        const rect = {x:t.x, y:t.y, w:t.w, h:t.h};
+        if(circleRectCollide(player.x, player.y, player.r, rect)){ openQuiz(t.id); break; }
+      }
+
+      draw();
+    }
+
+    setHUD();
+    update();
+  </script>
+</body>
+</html>
