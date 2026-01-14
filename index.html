@@ -3,606 +3,730 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SEGI4 Quest (Colorful) — Game Quiz Segiempat Kelas 7</title>
+  <title>Misi Segiempat — Quiz Adventure</title>
   <style>
     :root{
-      --bg1:#0b1026;
-      --bg2:#1a0b2e;
-      --stroke:rgba(255,255,255,.16);
-      --text:#f4f6ff;
-      --muted:rgba(244,246,255,.78);
-      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --bg0:#0b1020; --bg1:#0f1730; --bg2:#0b1a16;
+      --ink:#e8eefc; --muted:#a7b3d3;
+      --card: rgba(18, 26, 52, .70);
+      --stroke: rgba(232, 238, 252, .12);
+      --shadow: 0 18px 55px rgba(0,0,0,.45);
+      --good:#34d399; --bad:#fb7185; --pri:#60a5fa; --pri2:#a78bfa; --warn:#fbbf24;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
+    *{box-sizing:border-box}
     body{
-      margin:0;
-      color:var(--text);
-      background: radial-gradient(1100px 700px at 15% 10%, rgba(124,92,255,.35), transparent 60%),
-                  radial-gradient(900px 600px at 85% 20%, rgba(51,209,255,.28), transparent 60%),
-                  radial-gradient(1000px 700px at 50% 90%, rgba(255,209,102,.18), transparent 60%),
-                  linear-gradient(160deg, var(--bg1), var(--bg2));
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(900px 560px at 18% 0%, rgba(167,139,250,.18), transparent 60%),
+        radial-gradient(900px 560px at 88% 10%, rgba(96,165,250,.16), transparent 60%),
+        radial-gradient(900px 560px at 55% 115%, rgba(52,211,153,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 55%, var(--bg2));
+      min-height:100vh;
     }
-    .wrap{max-width:1020px;margin:0 auto;padding:14px;}
-    .top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;}
-    h1{margin:8px 0 6px;font-size:20px;letter-spacing:.2px}
-    .subtitle{margin:0 0 10px;color:var(--muted);font-size:13px;line-height:1.4}
-    .chips{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px;}
-    .chip{
-      padding:8px 10px;border-radius:999px;
-      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
-      border:1px solid var(--stroke);
-      font-size:13px;
-      backdrop-filter: blur(8px);
-    }
-    .hud{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      padding:2px 6px;border-radius:10px;border:1px solid var(--stroke);
-      background:rgba(0,0,0,.18);
-    }
-    .panel{
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+    .wrap{max-width:1040px;margin:0 auto;padding:14px}
+    .topbar{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+      background: var(--card);
       border:1px solid var(--stroke);
       border-radius:18px;
       padding:12px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
-    canvas{
-      width:100%;height:auto;border-radius:18px;border:1px solid var(--stroke);
-      background:transparent;touch-action:none;box-shadow: var(--shadow);
-    }
-    .controls{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:12px;}
-    .pad{display:grid;grid-template-columns:58px 58px 58px;grid-template-rows:58px 58px 58px;gap:10px;}
-    .btn{
-      user-select:none;-webkit-user-select:none;
-      display:flex;align-items:center;justify-content:center;
-      border-radius:16px;font-weight:900;font-size:18px;
+    h1{margin:0;font-size:18px}
+    .sub{margin:2px 0 0;color:var(--muted);font-size:12px;line-height:1.35}
+    .hud{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{
       border:1px solid var(--stroke);
-      background:linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.07));
-      box-shadow: 0 10px 24px rgba(0,0,0,.25);
-      cursor:pointer;touch-action:manipulation;
+      background: rgba(255,255,255,.06);
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      display:flex;gap:8px;align-items:center;
+      color: var(--ink);
     }
-    .btn:active{transform:scale(.98)}
-    .btn.empty{background:transparent;border:none;box-shadow:none;cursor:default}
-    .btnWide{padding:12px 14px}
-    .btnPrimary{
-      background: linear-gradient(135deg, rgba(124,92,255,.65), rgba(51,209,255,.55));
-      border-color: rgba(255,255,255,.22);
+    .pill b{font-size:12px}
+    .btn{
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      color: var(--ink);
+      border-radius:16px;
+      padding:10px 12px;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;-webkit-user-select:none;
     }
-    .small{font-size:12px;color:var(--muted);line-height:1.35;max-width:520px}
-    .result{display:none;margin-top:10px}
-    .result h3{margin:0 0 6px}
-    .result .grid{display:grid;gap:6px;color:var(--muted)}
-    .result b{color:#fff}
-
-    /* Quiz overlay */
-    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;
-      background: radial-gradient(900px 600px at 50% 0%, rgba(124,92,255,.28), transparent 65%),
-                  rgba(0,0,0,.72);
-      backdrop-filter: blur(8px);
+    .btn:active{transform:scale(.99)}
+    .btn.primary{
+      background: linear-gradient(180deg, rgba(167,139,250,.95), rgba(96,165,250,.95));
+      color:#0a1020; border-color:transparent;
     }
-    .qCard{
-      width:min(860px, 100%);
-      border-radius:22px;
-      padding:14px;
-      border:1px solid rgba(255,255,255,.18);
-      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+    .btn.good{background: rgba(52,211,153,.10); border-color: rgba(52,211,153,.28)}
+    .btn.warn{background: rgba(251,191,36,.10); border-color: rgba(251,191,36,.28)}
+    .btn.bad{background: rgba(251,113,133,.10); border-color: rgba(251,113,133,.28)}
+    .main{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns: 1.4fr .9fr;
+      gap:12px;
+    }
+    @media (max-width: 920px){ .main{grid-template-columns:1fr} }
+    .card{
+      background: var(--card);
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      padding:12px;
       box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
     }
-    .qHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-    .qHead h2{margin:0;font-size:16px}
-    .tag{
-      padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.18);
-      font-size:12px;color:var(--muted)
+    .map{
+      position:relative;
+      height:520px;
+      border-radius:18px;
+      border:1px solid var(--stroke);
+      overflow:hidden;
+      background:
+        linear-gradient(0deg, rgba(255,255,255,.04), rgba(255,255,255,.04)),
+        radial-gradient(900px 600px at 20% 25%, rgba(96,165,250,.14), transparent 58%),
+        radial-gradient(900px 600px at 85% 25%, rgba(167,139,250,.12), transparent 58%),
+        radial-gradient(900px 600px at 50% 105%, rgba(52,211,153,.10), transparent 60%);
+      box-shadow: 0 18px 55px rgba(0,0,0,.35) inset;
     }
-    .prompt{margin:10px 0 12px;line-height:1.5;color:#fff}
-    .choices{display:grid;grid-template-columns:1fr;gap:10px}
-    .choice{
-      padding:12px;border-radius:16px;border:1px solid rgba(255,255,255,.16);
-      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+    .path{position:absolute; inset:0; pointer-events:none;}
+    .node{
+      position:absolute;
+      width:78px; height:78px;
+      border-radius:999px;
+      display:flex; align-items:center; justify-content:center;
+      border:2px solid rgba(232,238,252,.14);
+      background: rgba(255,255,255,.06);
+      box-shadow: 0 14px 34px rgba(0,0,0,.35);
+      cursor:pointer;
+      user-select:none;-webkit-user-select:none;
+      transition: transform .18s ease, filter .18s ease;
+    }
+    .node:hover{transform: translateY(-2px)}
+    .node .num{
+      width:46px;height:46px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:1000;font-size:16px;
+      border:1px solid rgba(232,238,252,.14);
+      background: rgba(255,255,255,.07);
+      color: var(--ink);
+    }
+    .node .star{
+      position:absolute; bottom:-8px; right:-8px;
+      width:34px;height:34px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(232,238,252,.14);
+      background: rgba(10,16,32,.88);
+      box-shadow: 0 12px 25px rgba(0,0,0,.35);
+      font-size:16px;
+    }
+    .node.locked{filter: grayscale(.4) opacity(.65); cursor:not-allowed}
+    .node.done{border-color: rgba(52,211,153,.40)}
+    .node.done .num{background: rgba(52,211,153,.10); border-color: rgba(52,211,153,.22)}
+    .node.current{
+      outline: 6px solid rgba(96,165,250,.14);
+      animation: pulse 1.3s ease-in-out infinite;
+    }
+    @keyframes pulse{0%,100%{transform: scale(1)}50%{transform: scale(1.04)}}
+
+    .avatarRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .avatar{
+      width:54px;height:54px;border-radius:16px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      display:flex;align-items:center;justify-content:center;
+      font-size:28px;
       cursor:pointer;
     }
-    .choice:hover{border-color: rgba(255,255,255,.30)}
-    .choice:active{transform:scale(.99)}
-    .choice strong{display:inline-block;min-width:26px}
-    .choice.correct{border-color: rgba(39,245,159,.9); box-shadow: 0 0 0 3px rgba(39,245,159,.16) inset;}
-    .choice.wrong{border-color: rgba(255,95,122,.9); box-shadow: 0 0 0 3px rgba(255,95,122,.14) inset;}
+    .avatar.sel{outline:4px solid rgba(96,165,250,.16)}
+    .field{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    input[type="text"]{
+      flex:1; min-width:180px;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      font-weight:750;
+      color: var(--ink);
+      outline: none;
+    }
+    input[type="text"]::placeholder{color: rgba(232,238,252,.55)}
+    .tips{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.45}
+    .power{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px;}
+    .badge{
+      padding:8px 10px;border-radius:16px;border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      font-size:12px;color:var(--muted);
+      display:flex;justify-content:space-between;gap:10px;align-items:center;
+    }
+    .badge b{color:var(--ink)}
+    .mini{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap}
 
-    .feedback{display:none;margin-top:12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.16);
-      background:rgba(0,0,0,.18)
+    .overlay{
+      position:fixed; inset:0;
+      display:none; align-items:center; justify-content:center;
+      padding:14px;
+      background: rgba(0,0,0,.60);
+      backdrop-filter: blur(10px);
+      z-index:9999;
+    }
+    .qCard{
+      width:min(900px, 100%);
+      border-radius:22px;
+      border:1px solid rgba(232,238,252,.14);
+      background: rgba(12, 18, 38, .92);
+      box-shadow: 0 28px 80px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    .qTop{
+      padding:12px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      background:
+        radial-gradient(700px 220px at 0% 0%, rgba(96,165,250,.18), transparent 60%),
+        radial-gradient(700px 220px at 100% 0%, rgba(167,139,250,.14), transparent 60%),
+        rgba(255,255,255,.02);
+      border-bottom:1px solid rgba(232,238,252,.10);
+    }
+    .qTop h2{margin:0;font-size:16px}
+    .tag{padding:6px 10px;border-radius:999px;border:1px solid rgba(232,238,252,.14);background:rgba(255,255,255,.06);font-size:12px;color:rgba(232,238,252,.88)}
+    .qBody{padding:14px}
+    .prompt{margin:0 0 12px;line-height:1.58;font-weight:950;color:rgba(232,238,252,.95)}
+    .choices{display:grid;grid-template-columns:1fr;gap:10px}
+    @media (min-width: 860px){ .choices{grid-template-columns:1fr 1fr} }
+    .choice{
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(232,238,252,.14);
+      background: rgba(255,255,255,.06);
+      cursor:pointer;
+      font-weight:850;
+      display:flex; gap:10px; align-items:flex-start;
+      color: rgba(232,238,252,.92);
+    }
+    .choice:hover{border-color: rgba(232,238,252,.28); background: rgba(255,255,255,.08)}
+    .choice:active{transform:scale(.99)}
+    .choice .letter{
+      width:30px;height:30px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(232,238,252,.14);
+      background: rgba(0,0,0,.18);
+      flex:0 0 auto;
+    }
+    .choice.correct{border-color: rgba(52,211,153,.70); box-shadow: 0 0 0 3px rgba(52,211,153,.12) inset;}
+    .choice.wrong{border-color: rgba(251,113,133,.70); box-shadow: 0 0 0 3px rgba(251,113,133,.10) inset;}
+
+    .feedback{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid rgba(232,238,252,.12);
+      background: rgba(255,255,255,.06);
+      display:none;
+      color: rgba(232,238,252,.90);
     }
     .feedback .line{margin:6px 0}
-    .qFoot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:12px}
-    .qFoot .left{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .qFoot .right{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .btn2{
-      padding:10px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.16);
-      background:rgba(0,0,0,.18);color:var(--text);font-weight:900;cursor:pointer;
+    .muted{color:rgba(167,179,211,.92);font-size:12px;line-height:1.45}
+    .qFoot{
+      padding:12px 14px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      border-top:1px solid rgba(232,238,252,.10);
+      background: rgba(255,255,255,.02);
     }
-    .btn2.primary{background: linear-gradient(135deg, rgba(124,92,255,.65), rgba(51,209,255,.55));}
-    .btn2.danger{background: rgba(255,95,122,.15)}
-    .muted{color:var(--muted);font-size:12px;line-height:1.35}
 
-    @media (min-width: 860px){
-      .wrap{padding:18px}
-      h1{font-size:22px}
-      .choices{grid-template-columns:1fr 1fr}
+    canvas#fx{position:fixed; inset:0; pointer-events:none; z-index:9998;}
+
+    .startOverlay{
+      position:fixed; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      padding:14px;
+      background:
+        radial-gradient(900px 520px at 20% 0%, rgba(167,139,250,.20), transparent 60%),
+        radial-gradient(900px 520px at 90% 10%, rgba(96,165,250,.18), transparent 60%),
+        rgba(0,0,0,.35);
+      backdrop-filter: blur(12px);
+      z-index:10000;
     }
+    .startCard{
+      width:min(860px,100%);
+      border-radius:22px;
+      border:1px solid rgba(232,238,252,.12);
+      background: rgba(12, 18, 38, .92);
+      box-shadow: 0 28px 80px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    .startHead{
+      padding:14px 14px 12px;
+      background:
+        radial-gradient(780px 240px at 0% 0%, rgba(96,165,250,.18), transparent 60%),
+        radial-gradient(780px 240px at 100% 0%, rgba(167,139,250,.14), transparent 60%),
+        rgba(255,255,255,.02);
+      border-bottom:1px solid rgba(232,238,252,.10);
+    }
+    .startHead h2{margin:0 0 4px;font-size:18px}
+    .startHead p{margin:0;color:rgba(167,179,211,.92);font-size:12px;line-height:1.4}
+    .startBody{padding:14px}
+    .startGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width: 820px){ .startGrid{grid-template-columns:1fr} }
+    .callout{
+      border-radius:18px;
+      border:1px solid rgba(232,238,252,.12);
+      background: rgba(255,255,255,.06);
+      padding:12px;
+      color:rgba(232,238,252,.92);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .vol{
+      display:flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:999px;border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      font-size:12px;
+    }
+    input[type="range"]{width:110px;accent-color: var(--pri);}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div class="panel" style="flex:1;min-width:280px">
-        <h1>SEGI4 Quest (Colorful)</h1>
-        <p class="subtitle">Adventure quiz segiempat untuk kelas 7: jalanin karakter → buka terminal soal → kumpulkan skor. Cocok untuk HP & laptop.</p>
-        <div class="chips">
-          <div class="chip">Gerak: <span class="kbd">WASD</span>/<span class="kbd">←↑→↓</span> atau tombol layar</div>
-          <div class="chip">Dekati kotak bernomor untuk soal</div>
-          <div class="chip">+10 benar • −1 nyawa saat salah</div>
-        </div>
-        <div class="hud chips">
-          <div class="chip" id="hudScore">Skor: <b>0</b></div>
-          <div class="chip" id="hudLives">Nyawa: <b>3</b></div>
-          <div class="chip" id="hudDone">Selesai: <b>0/10</b></div>
-        </div>
+  <canvas id="fx"></canvas>
+
+  <div class="startOverlay" id="startOverlay">
+    <div class="startCard">
+      <div class="startHead">
+        <h2>🌙 Misi Segiempat — Quiz Adventure</h2>
+        <p>Permainan kuis interaktif materi bangun datar segiempat untuk kelas VII SMP (tanpa penanda waktu).</p>
       </div>
+      <div class="startBody">
+        <div class="startGrid">
+          <div class="callout">
+            <b>Petunjuk penggunaan:</b><br/>
+            • Pilih pos yang menyala, lalu jawab soal.<br/>
+            • Jawaban benar akan membuka pos berikutnya.<br/>
+            • Dalam permainan tersedia 3 nyawa. Setiap jawaban yang salah akan mengurangi 1 nyawa.<br/>
+            • Tersedia bantuan: <b>Pelindung</b> (terbatas).
+          </div>
 
-      <div class="panel" style="min-width:260px;max-width:360px">
-        <div class="small">
-          <div><b>Catatan:</b> Soal #7 dibetulkan (tinggi 6 m → jumlah sisi sejajar 24 m) agar sesuai opsi.</div>
-          <div style="margin-top:6px">Tips: tekan <b>Hint</b> kalau butuh bantuan.</div>
-        </div>
-        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <div class="btn btnWide btnPrimary" id="btnRestart">↻ Restart</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="height:12px"></div>
-    <canvas id="game" width="960" height="540"></canvas>
-
-    <div class="controls">
-      <div class="pad" aria-label="Kontrol arah">
-        <div class="btn empty"></div>
-        <div class="btn" id="btnUp">↑</div>
-        <div class="btn empty"></div>
-        <div class="btn" id="btnLeft">←</div>
-        <div class="btn" id="btnStop">■</div>
-        <div class="btn" id="btnRight">→</div>
-        <div class="btn empty"></div>
-        <div class="btn" id="btnDown">↓</div>
-        <div class="btn empty"></div>
-      </div>
-
-      <div class="panel" style="flex:1;min-width:260px">
-        <div class="small">
-          <b>Goal:</b> Selesaikan 10 terminal. Terminal hijau = sudah benar.
-        </div>
-        <div class="result" id="resultBox">
-          <h3>Hasil</h3>
-          <div class="grid" id="resultText"></div>
+          <div class="callout">
+            <b>Pilih karakter dan masukkan nama:</b>
+            <div class="avatarRow" style="margin-top:10px" id="avatarRow"></div>
+            <div class="field">
+              <input id="playerName" type="text" placeholder="Nama pemain (contoh: Aulia)" maxlength="18" />
+              <button class="btn primary" id="btnStart">Mulai</button>
+            </div>
+            <div class="tips">
+              Catatan: suara/musik biasanya aktif setelah interaksi pertama (ketentuan peramban).
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Quiz Overlay -->
-  <div class="overlay" id="quizOverlay">
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>🏫 Misi Segiempat — Bangun Datar Segiempat (Kelas VII)</h1>
+        <div class="sub">Selesaikan pos 1 sampai 10 untuk menyelesaikan seluruh misi.</div>
+      </div>
+
+      <div class="hud">
+        <div class="pill">👤 <span id="hudPlayer"><b>-</b></span></div>
+        <div class="pill">❤ Nyawa: <b id="hudLives">3</b></div>
+        <div class="pill">⭐ Skor: <b id="hudScore">0</b></div>
+        <div class="pill">🔥 Kombo: <b id="hudStreak">0</b></div>
+        <div class="pill">🏁 Pos: <b id="hudProgress">0/10</b></div>
+
+        <button class="btn" id="btnSound">🔊 Efek</button>
+        <button class="btn" id="btnMusic">🎵 Musik</button>
+        <div class="vol" title="Volume musik">
+          🔉 <input id="vol" type="range" min="0" max="100" value="55" />
+        </div>
+        <button class="btn warn" id="btnReset">↻ Atur Ulang</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="card">
+        <div class="muted" id="statusText" style="margin:0 0 8px">Status: Siap memulai. Silakan kerjakan Pos 1.</div>
+        <div class="map" id="map">
+          <svg class="path" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path id="pathLine" d="" fill="none" stroke="rgba(232,238,252,.16)" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1.6 1.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div>
+            <div style="font-weight:1000">🎮 Panel Bantuan</div>
+            <div class="muted">Fitur permainan; gunakan bila diperlukan.</div>
+          </div>
+          <div class="pill">🏆 Skor Terbaik: <b id="bestScore">0</b></div>
+        </div>
+
+        <div class="power">
+          <button class="btn" id="btnShield">🛡️ Pelindung (<span id="shieldLeft">1</span>)</button>
+          <button class="btn" id="btnInfo">📌 Ringkasan Materi</button>
+          <button class="btn bad" id="btnMuteQuick">🔕 Senyap</button>
+        </div>
+
+        <div class="mini">
+          <div class="badge"><span>🎯 Target skor</span><b id="targetScore">80</b></div>
+          <div class="badge"><span>📘 Materi</span><b>Segiempat</b></div>
+        </div>
+
+        <div class="tips" style="margin-top:12px" id="sideTips">
+          <b>Aturan skor:</b> jawaban benar +10, bonus kombo +2 setiap benar berturut-turut (maksimum +10).<br/>
+          <b>Pelindung:</b> dapat digunakan 1 kali untuk menahan 1 kesalahan (nyawa tidak berkurang).<br/>
+          <b>Tanpa penanda waktu:</b> fokus pada pemahaman konsep terlebih dahulu.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
     <div class="qCard">
-      <div class="qHead">
-        <h2 id="qHeader">Soal</h2>
-        <div class="tag" id="qTag">Terminal</div>
+      <div class="qTop">
+        <h2 id="qTitle">Soal</h2>
+        <span class="tag" id="qTag">Pos</span>
+        <span class="tag">Tanpa penanda waktu</span>
       </div>
 
-      <div class="prompt" id="qPrompt"></div>
+      <div class="qBody">
+        <div class="prompt" id="qPrompt"></div>
+        <div class="choices" id="choices"></div>
 
-      <div class="choices">
-        <div class="choice" id="c0"><strong>A.</strong> <span id="t0"></span></div>
-        <div class="choice" id="c1"><strong>B.</strong> <span id="t1"></span></div>
-        <div class="choice" id="c2"><strong>C.</strong> <span id="t2"></span></div>
-        <div class="choice" id="c3"><strong>D.</strong> <span id="t3"></span></div>
-      </div>
-
-      <div class="feedback" id="feedback">
-        <div class="line" id="fbMain"></div>
-        <div class="line muted" id="fbExplain"></div>
+        <div class="feedback" id="feedback">
+          <div class="line" id="fbMain"></div>
+          <div class="line muted" id="fbExplain"></div>
+        </div>
       </div>
 
       <div class="qFoot">
-        <div class="left">
-          <button class="btn2" id="btnHint">Hint</button>
-          <div class="muted" id="hintText"></div>
-        </div>
-        <div class="right">
-          <button class="btn2 danger" id="btnClose">Tutup</button>
-          <button class="btn2 primary" id="btnNext">Lanjut</button>
+        <div class="muted" id="miniHint">Informasi akan ditampilkan di sini.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn bad" id="btnQuit">Tutup</button>
+          <button class="btn primary" id="btnContinue">Lanjut</button>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    const questions = [
-      {prompt:"Bangun datar yang memiliki dua pasang sisi berhadapan sejajar dan sama panjang adalah …",choices:["Trapesium","Layang-layang","Jajar genjang","Belah ketupat"],correct:2,hint1:"Ciri kunci: ada 2 pasang sisi sejajar.",hint2:"Pada jajar genjang, sisi berhadapan sejajar dan sama panjang.",explain:"Jajar genjang memiliki dua pasang sisi berhadapan sejajar dan sama panjang."},
-      {prompt:"“Bangun datar ini memiliki empat sisi sama panjang dan diagonalnya saling tegak lurus.” Bangun datar yang dimaksud adalah …",choices:["Persegi panjang","Jajar genjang","Belah ketupat","Trapesium"],correct:2,hint1:"Cari bangun dengan 4 sisi sama panjang.",hint2:"Diagonal yang saling tegak lurus adalah ciri belah ketupat.",explain:"Belah ketupat memiliki 4 sisi sama panjang dan diagonalnya saling tegak lurus."},
-      {prompt:"Sebuah lapangan berbentuk persegi panjang memiliki panjang 20 m dan lebar 15 m. Luas lapangan tersebut adalah …",choices:["150 m²","300 m²","350 m²","600 m²"],correct:1,hint1:"Luas persegi panjang = p × l.",hint2:"20 × 15 = 300.",explain:"L = 20 × 15 = 300 m²."},
-      {prompt:"Sebuah taman berbentuk trapesium memiliki sisi sejajar masing-masing 14 m dan 10 m serta tinggi 6 m. Langkah yang tepat untuk menentukan luas taman tersebut adalah …",choices:["Menjumlahkan semua sisi lalu dibagi 2","Mengalikan kedua sisi sejajar","Menjumlahkan sisi sejajar, dikalikan tinggi, lalu dibagi 2","Mengalikan sisi sejajar terpanjang dengan tinggi"],correct:2,hint1:"Rumus trapesium: ½(a+b)×t.",hint2:"Jumlah sisi sejajar dulu, kali tinggi, lalu bagi 2.",explain:"Luas trapesium: ½(a+b)×t."},
-      {prompt:"Ana menghitung luas belah ketupat dengan diagonal 12 cm dan 16 cm: L = 12 × 16 = 192 cm². Kesalahan Ana terletak pada …",choices:["Salah memilih rumus","Tidak membagi hasil perkalian dengan 2","Salah mengukur diagonal","Salah menentukan satuan"],correct:1,hint1:"Rumus belah ketupat ada faktor ½.",hint2:"L = ½×d1×d2, jadi hasil perkalian harus dibagi 2.",explain:"Seharusnya L = ½×12×16 = 96 cm². Ana lupa membagi 2."},
-      {prompt:"Sebuah taman sekolah akan dibuat berbentuk persegi dengan luas 64 m². Panjang sisi taman yang tepat adalah …",choices:["6 m","7 m","8 m","9 m"],correct:2,hint1:"Luas persegi = s².",hint2:"s = √64 = 8.",explain:"s = √64 = 8 m."},
-      {prompt:"Sebuah kolam ikan dirancang berbentuk trapesium dengan luas 72 m² dan tinggi 6 m. Jumlah panjang dua sisi sejajar kolam tersebut adalah …",choices:["12 m","18 m","24 m","30 m"],correct:2,hint1:"Gunakan L = ½(a+b)×t.",hint2:"(a+b) = 2L/t = 2×72/6 = 24.",explain:"Jumlah sisi sejajar: (a+b)=2L/t=24 m."},
-      {prompt:"Sebuah hiasan dinding berbentuk layang-layang memiliki luas 120 cm². Jika salah satu diagonalnya 20 cm, maka panjang diagonal lainnya adalah …",choices:["8 cm","12 cm","16 cm","20 cm"],correct:1,hint1:"Layang-layang: L = ½×d1×d2.",hint2:"d2 = 2L/d1 = 240/20 = 12.",explain:"d2 = 12 cm."},
-      {prompt:"Sebuah papan reklame berbentuk jajar genjang memiliki luas 150 m². Jika tinggi papan 10 m, maka panjang alas papan reklame yang mungkin adalah …",choices:["10 m","12 m","15 m","20 m"],correct:2,hint1:"Jajar genjang: L = alas × tinggi.",hint2:"alas = 150/10 = 15.",explain:"alas = 150 ÷ 10 = 15 m."},
-      {prompt:"Sebuah meja belajar berbentuk persegi dengan keliling 96 cm. Panjang sisi meja tersebut adalah …",choices:["20 cm","22 cm","24 cm","26 cm"],correct:2,hint1:"Keliling persegi = 4s.",hint2:"s = 96/4 = 24.",explain:"s = 24 cm."},
+    const QUESTIONS = [
+      {prompt:"Bangun datar yang memiliki dua pasang sisi berhadapan sejajar dan sama panjang adalah …",
+        choices:["Trapesium","Layang-layang","Jajar genjang","Belah ketupat"], correct:2,
+        explain:"Jajar genjang memiliki dua pasang sisi berhadapan sejajar dan sama panjang."},
+      {prompt:"“Bangun datar ini memiliki empat sisi sama panjang dan diagonalnya saling tegak lurus.” Bangun datar yang dimaksud adalah …",
+        choices:["Persegi panjang","Jajar genjang","Belah ketupat","Trapesium"], correct:2,
+        explain:"Belah ketupat memiliki empat sisi sama panjang dan diagonalnya saling tegak lurus."},
+      {prompt:"Sebuah lapangan berbentuk persegi panjang memiliki panjang 20 m dan lebar 15 m. Luas lapangan tersebut adalah …",
+        choices:["150 m²","300 m²","350 m²","600 m²"], correct:1,
+        explain:"Luas persegi panjang: L = p × l = 20 × 15 = 300 m²."},
+      {prompt:"Sebuah taman berbentuk trapesium memiliki sisi sejajar 14 m dan 10 m serta tinggi 6 m. Langkah yang tepat untuk menentukan luas taman adalah …",
+        choices:["Menjumlahkan semua sisi lalu dibagi 2","Mengalikan kedua sisi sejajar","Menjumlahkan sisi sejajar, dikalikan tinggi, lalu dibagi 2","Mengalikan sisi sejajar terpanjang dengan tinggi"],
+        correct:2, explain:"Luas trapesium: L = ½(a+b)×t (jumlah sisi sejajar, kali tinggi, bagi 2)."},
+      {prompt:"Ana menghitung luas belah ketupat dengan diagonal 12 cm dan 16 cm: L = 12 × 16 = 192 cm². Kesalahan Ana terletak pada …",
+        choices:["Salah memilih rumus","Tidak membagi hasil perkalian dengan 2","Salah mengukur diagonal","Salah menentukan satuan"],
+        correct:1, explain:"Seharusnya L = ½×d1×d2 = ½×12×16 = 96 cm². Ana lupa membagi hasil perkalian dengan 2."},
+      {prompt:"Sebuah taman sekolah berbentuk persegi dengan luas 64 m². Panjang sisi taman yang tepat adalah …",
+        choices:["6 m","7 m","8 m","9 m"], correct:2,
+        explain:"Luas persegi: L = s² → s = √64 = 8 m."},
+      {prompt:"Sebuah kolam ikan berbentuk trapesium memiliki luas 72 m² dan tinggi 6 m. Jumlah panjang dua sisi sejajar kolam adalah …",
+        choices:["12 m","18 m","24 m","30 m"], correct:2,
+        explain:"L = ½(a+b)×t → (a+b) = 2L/t = 2×72/6 = 24 m."},
+      {prompt:"Hiasan dinding berbentuk layang-layang memiliki luas 120 cm². Jika salah satu diagonalnya 20 cm, panjang diagonal lainnya adalah …",
+        choices:["8 cm","12 cm","16 cm","20 cm"], correct:1,
+        explain:"L = ½×d1×d2 → d2 = 2L/d1 = 240/20 = 12 cm."},
+      {prompt:"Papan reklame berbentuk jajar genjang memiliki luas 150 m². Jika tinggi 10 m, panjang alas yang mungkin adalah …",
+        choices:["10 m","12 m","15 m","20 m"], correct:2,
+        explain:"L = alas × tinggi → alas = 150/10 = 15 m."},
+      {prompt:"Meja belajar berbentuk persegi dengan keliling 96 cm. Panjang sisi meja adalah …",
+        choices:["20 cm","22 cm","24 cm","26 cm"], correct:2,
+        explain:"Keliling persegi: K = 4s → s = 96/4 = 24 cm."},
     ];
 
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+    const STATE = {
+      name: "Pemain", avatar: "🧑‍🎓",
+      sfxOn: true, musicOn: true,
+      lives: 3, score: 0, streak: 0, progress: 0, unlocked: 0,
+      done: Array(10).fill(false),
+      shieldLeft: 1, shieldActive: false,
+      qIndex: null, answered: false,
+      restartPending: false,
+    };
 
-    const player = { x: 100, y: 110, r: 15, vx: 0, vy: 0, speed: 2.8, bob: 0 };
-    const keys = { up:false, down:false, left:false, right:false };
-    let running = true;
+    const startOverlay = document.getElementById('startOverlay');
+    const avatarRow = document.getElementById('avatarRow');
+    const playerName = document.getElementById('playerName');
+    const btnStart = document.getElementById('btnStart');
 
-    let score = 0;
-    let lives = 3;
-    let done = Array(questions.length).fill(false);
-    let doneCount = 0;
+    const hudPlayer = document.getElementById('hudPlayer');
+    const hudLives = document.getElementById('hudLives');
+    const hudScore = document.getElementById('hudScore');
+    const hudStreak = document.getElementById('hudStreak');
+    const hudProgress = document.getElementById('hudProgress');
 
-    const hudScore = document.getElementById("hudScore");
-    const hudLives = document.getElementById("hudLives");
-    const hudDone  = document.getElementById("hudDone");
-    const resultBox = document.getElementById("resultBox");
-    const resultText = document.getElementById("resultText");
+    const bestScoreEl = document.getElementById('bestScore');
+    const statusText = document.getElementById('statusText');
 
-    // Quiz overlay elements
-    const overlay = document.getElementById("quizOverlay");
-    const qHeader = document.getElementById("qHeader");
-    const qTag = document.getElementById("qTag");
-    const qPrompt = document.getElementById("qPrompt");
-    const t0 = document.getElementById("t0");
-    const t1 = document.getElementById("t1");
-    const t2 = document.getElementById("t2");
-    const t3 = document.getElementById("t3");
-    const c0 = document.getElementById("c0");
-    const c1 = document.getElementById("c1");
-    const c2 = document.getElementById("c2");
-    const c3 = document.getElementById("c3");
-    const feedback = document.getElementById("feedback");
-    const fbMain = document.getElementById("fbMain");
-    const fbExplain = document.getElementById("fbExplain");
-    const btnHint = document.getElementById("btnHint");
-    const hintText = document.getElementById("hintText");
-    const btnClose = document.getElementById("btnClose");
-    const btnNext = document.getElementById("btnNext");
+    const btnSound = document.getElementById('btnSound');
+    const btnMusic = document.getElementById('btnMusic');
+    const vol = document.getElementById('vol');
+    const btnReset = document.getElementById('btnReset');
 
-    // World
-    const walls = [
-      {x: 40, y: 70, w: 880, h: 20},{x: 40, y: 70, w: 20, h: 420},{x: 40, y: 470, w: 880, h: 20},{x: 900, y: 70, w: 20, h: 420},
-      {x: 160, y: 120, w: 20, h: 280},{x: 320, y: 70,  w: 20, h: 280},{x: 480, y: 260, w: 20, h: 230},{x: 640, y: 70,  w: 20, h: 280},{x: 800, y: 260, w: 20, h: 230},
-      {x: 180, y: 380, w: 140, h: 20},{x: 340, y: 180, w: 140, h: 20},{x: 500, y: 180, w: 140, h: 20},{x: 660, y: 380, w: 140, h: 20},
-    ];
-    const terminals = [
-      {id:0, x:110, y:160, w:42, h:42},{id:1, x:110, y:420, w:42, h:42},{id:2, x:270, y:100, w:42, h:42},{id:3, x:270, y:420, w:42, h:42},
-      {id:4, x:430, y:100, w:42, h:42},{id:5, x:430, y:420, w:42, h:42},{id:6, x:590, y:100, w:42, h:42},{id:7, x:590, y:420, w:42, h:42},
-      {id:8, x:750, y:100, w:42, h:42},{id:9, x:750, y:420, w:42, h:42},
-    ];
+    const btnShield = document.getElementById('btnShield');
+    const btnInfo = document.getElementById('btnInfo');
+    const btnMuteQuick = document.getElementById('btnMuteQuick');
 
-    // Effects
+    const shieldLeftEl = document.getElementById('shieldLeft');
+
+    const overlay = document.getElementById('overlay');
+    const qTitle = document.getElementById('qTitle');
+    const qTag = document.getElementById('qTag');
+    const qPrompt = document.getElementById('qPrompt');
+    const choices = document.getElementById('choices');
+
+    const feedback = document.getElementById('feedback');
+    const fbMain = document.getElementById('fbMain');
+    const fbExplain = document.getElementById('fbExplain');
+    const btnQuit = document.getElementById('btnQuit');
+    const btnContinue = document.getElementById('btnContinue');
+
+    const miniHint = document.getElementById('miniHint');
+    const sideTips = document.getElementById('sideTips');
+
+    const map = document.getElementById('map');
+    const pathLine = document.getElementById('pathLine');
+
+    function setStatus(text){ statusText.textContent = "Status: " + text; }
+
+    // ===== AUDIO (lebih terdengar) =====
+    let audioCtx = null;
+    let musicMaster = null, padGain = null, noiseSrc = null, padOscs = [];
+    let musicStarted = false, chordTimer = null;
+
+    function ensureAudio(){
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function beep(kind="good"){
+      if(!STATE.sfxOn) return;
+      ensureAudio();
+      if(!audioCtx) return;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      const t = audioCtx.currentTime;
+      o.type = "triangle";
+      const base = kind === "good" ? 660 : 240;
+      o.frequency.setValueAtTime(base, t);
+      o.frequency.exponentialRampToValueAtTime(kind === "good" ? 880 : 180, t + 0.12);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.26, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.20);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(t); o.stop(t + 0.22);
+    }
+
+    function buildNoiseBuffer(){
+      const dur = 2.0;
+      const sr = audioCtx.sampleRate;
+      const buf = audioCtx.createBuffer(1, Math.floor(sr * dur), sr);
+      const data = buf.getChannelData(0);
+      for(let i=0;i<data.length;i++) data[i] = (Math.random()*2 - 1) * 0.7;
+      return buf;
+    }
+
+    function stopMusic(){
+      if(!musicStarted) return;
+      if(chordTimer){ clearInterval(chordTimer); chordTimer = null; }
+      padOscs.forEach(o=>{ try{o.stop();}catch(e){} });
+      padOscs = [];
+      if(noiseSrc){ try{noiseSrc.stop();}catch(e){} noiseSrc = null; }
+      musicStarted = false;
+    }
+
+    function applyMusicVolume(){
+      if(!musicMaster || !audioCtx) return;
+      const v = (Number(vol.value)/100) * 0.65;
+      musicMaster.gain.setTargetAtTime(v, audioCtx.currentTime, 0.05);
+    }
+
+    function startMusic(){
+      ensureAudio();
+      if(!audioCtx || musicStarted) return;
+
+      musicMaster = audioCtx.createGain();
+      musicMaster.gain.value = (Number(vol.value)/100) * 0.65;
+      musicMaster.connect(audioCtx.destination);
+
+      padGain = audioCtx.createGain();
+      padGain.gain.value = 0.34;
+
+      const lp = audioCtx.createBiquadFilter();
+      lp.type = "lowpass"; lp.frequency.value = 1100; lp.Q.value = 0.55;
+
+      const delay = audioCtx.createDelay(0.45);
+      delay.delayTime.value = 0.20;
+      const fb = audioCtx.createGain(); fb.gain.value = 0.28;
+      delay.connect(fb).connect(delay);
+
+      padGain.connect(lp).connect(delay).connect(musicMaster);
+      lp.connect(musicMaster);
+
+      const nSrc = audioCtx.createBufferSource();
+      nSrc.buffer = buildNoiseBuffer(); nSrc.loop = true;
+      const nLP = audioCtx.createBiquadFilter();
+      nLP.type = "lowpass"; nLP.frequency.value = 750; nLP.Q.value = 0.25;
+      const noiseGain = audioCtx.createGain(); noiseGain.gain.value = 0.040;
+      nSrc.connect(nLP).connect(noiseGain).connect(musicMaster);
+      nSrc.start(); noiseSrc = nSrc;
+
+      const chords = [
+        [261.63, 329.63, 392.00, 493.88],
+        [220.00, 261.63, 329.63, 392.00],
+        [174.61, 220.00, 261.63, 329.63],
+        [196.00, 246.94, 293.66, 392.00],
+      ];
+      let idx = 0;
+
+      function setChord(freqs){
+        padOscs.forEach(o=>{ try{o.stop();}catch(e){} }); padOscs = [];
+        const t = audioCtx.currentTime;
+        const attack = 1.0;
+
+        const lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+        lfo.type = "sine"; lfo.frequency.value = 0.10; lfoGain.gain.value = 7;
+        lfo.connect(lfoGain);
+
+        padGain.gain.cancelScheduledValues(t);
+        padGain.gain.setValueAtTime(0.0001, t);
+        padGain.gain.exponentialRampToValueAtTime(0.34, t + attack);
+
+        freqs.forEach((f, k)=>{
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = k % 2 === 0 ? "sine" : "triangle";
+          o.frequency.setValueAtTime(f, t);
+          o.detune.setValueAtTime((k-1.5)*3, t);
+          lfoGain.connect(o.frequency);
+
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.13, t + attack);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 9.0);
+
+          o.connect(g).connect(padGain);
+          o.start(t); o.stop(t + 9.6);
+          padOscs.push(o);
+        });
+
+        lfo.start(t); lfo.stop(t + 9.8);
+      }
+
+      setChord(chords[idx]);
+      chordTimer = setInterval(()=>{
+        if(!musicStarted) return;
+        idx = (idx + 1) % chords.length;
+        setChord(chords[idx]);
+      }, 9200);
+
+      musicStarted = true;
+    }
+
+    vol.addEventListener("input", ()=>{ if(audioCtx) applyMusicVolume(); });
+
+    // ===== CONFETTI =====
+    const fx = document.getElementById('fx');
+    const fctx = fx.getContext('2d');
     const confetti = [];
-    function rand(a,b){ return a + Math.random()*(b-a); }
-    function spawnConfetti(x,y,good=true){
-      const n = 36;
+    function resizeFX(){ fx.width = window.innerWidth * devicePixelRatio; fx.height = window.innerHeight * devicePixelRatio; }
+    window.addEventListener('resize', resizeFX); resizeFX();
+    function spawnConfetti(good=true){
+      const n = 70;
       for(let i=0;i<n;i++){
-        confetti.push({x,y,vx:rand(-3.0,3.0),vy:rand(-6.0,-1.0),g:rand(0.14,0.22),life:rand(34,70),r:rand(2,5),hue:good?rand(120,200):rand(330,15),a:1});
+        confetti.push({
+          x:(window.innerWidth/2)*devicePixelRatio, y:(window.innerHeight/2)*devicePixelRatio,
+          vx:(Math.random()*2-1)*(7*devicePixelRatio),
+          vy:(Math.random()*2-1)*(9*devicePixelRatio)-(5*devicePixelRatio),
+          g:(0.22+Math.random()*0.14)*devicePixelRatio,
+          s:(3+Math.random()*5)*devicePixelRatio,
+          life:60+Math.random()*55,
+          hue: good ? 140 + Math.random()*35 : (350 + Math.random()*25),
+          a:1
+        });
       }
     }
+    function drawFX(){
+      requestAnimationFrame(drawFX);
+      fctx.clearRect(0,0,fx.width,fx.height);
+      for(let i=confetti.length-1;i>=0;i--){
+        const p = confetti[i];
+        p.x+=p.vx; p.y+=p.vy; p.vy+=p.g;
+        p.life-=1; p.a=Math.max(0,p.life/110);
+        if(p.life<=0){ confetti.splice(i,1); continue; }
+        fctx.globalAlpha=p.a;
+        fctx.fillStyle=`hsla(${p.hue}, 85%, 60%, ${p.a})`;
+        fctx.fillRect(p.x,p.y,p.s,p.s);
+      }
+      fctx.globalAlpha=1;
+    }
+    drawFX();
+
+    // ===== MAP =====
+    const NODE_POS = [
+      {x:12,y:78},{x:30,y:62},{x:48,y:76},{x:66,y:58},{x:84,y:72},
+      {x:86,y:40},{x:68,y:34},{x:50,y:40},{x:32,y:30},{x:14,y:22}
+    ];
+    function buildPathD(){
+      let d="";
+      for(let i=0;i<NODE_POS.length;i++){
+        const p=NODE_POS[i];
+        d += (i===0 ? `M ${p.x} ${p.y}` : ` L ${p.x} ${p.y}`);
+      }
+      return d;
+    }
+    pathLine.setAttribute("d", buildPathD());
+
+    function bestScoreGet(){ return Number(localStorage.getItem("misi_segiempat_best") || "0"); }
+    function bestScoreSet(v){ localStorage.setItem("misi_segiempat_best", String(v)); }
+    function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
 
     function setHUD(){
-      hudScore.innerHTML = `Skor: <b>${score}</b>`;
-      hudLives.innerHTML = `Nyawa: <b>${lives}</b>`;
-      hudDone.innerHTML  = `Selesai: <b>${doneCount}/${questions.length}</b>`;
-    }
-
-    function showResult(){
-      resultBox.style.display = "block";
-      const status = (lives <= 0) ? "Gagal (nyawa habis)" : (doneCount === questions.length ? "Selesai (semua terminal beres)" : "Berjalan");
-      const akurasi = doneCount ? Math.round((score / (doneCount*10)) * 100) : 0;
-      resultText.innerHTML = `
-        <div>Status: <b>${status}</b></div>
-        <div>Skor akhir: <b>${score}</b></div>
-        <div>Terminal selesai: <b>${doneCount}</b> dari <b>${questions.length}</b></div>
-        <div>Akurasi benar (approx): <b>${akurasi}%</b></div>
-      `;
+      hudPlayer.innerHTML = `<b>${STATE.avatar} ${STATE.name}</b>`;
+      hudLives.textContent = String(STATE.lives);
+      hudScore.textContent = String(STATE.score);
+      hudStreak.textContent = String(STATE.streak);
+      hudProgress.textContent = `${STATE.progress}/10`;
+      shieldLeftEl.textContent = String(STATE.shieldLeft);
+      bestScoreEl.textContent = String(bestScoreGet());
+      btnSound.textContent = STATE.sfxOn ? "🔊 Efek: ON" : "🔇 Efek: OFF";
+      btnMusic.textContent = STATE.musicOn ? "🎵 Musik: ON" : "🎵 Musik: OFF";
+      btnShield.textContent = STATE.shieldActive ? "🛡️ Aktif" : `🛡️ Pelindung (${STATE.shieldLeft})`;
     }
 
     function resetGame(){
-      score = 0; lives = 3; done = Array(questions.length).fill(false); doneCount = 0;
-      player.x = 100; player.y = 110;
-      resultBox.style.display = "none";
-      overlay.style.display = "none";
-      activeTerminal = null; answered = false; hintStage = 0;
-      confetti.length = 0;
-      running = true;
-      setHUD();
+      STATE.restartPending = false;
+      STATE.lives=3; STATE.score=0; STATE.streak=0; STATE.progress=0; STATE.unlocked=0;
+      STATE.done=Array(10).fill(false);
+      STATE.shieldLeft=1; STATE.shieldActive=false;
+      closeQuiz(); renderMap(); setHUD();
+      setStatus("Permainan diatur ulang. Silakan kerjakan Pos 1.");
+      miniHint.textContent="Informasi akan ditampilkan di sini.";
+      sideTips.innerHTML = `<b>Aturan skor:</b> jawaban benar +10, bonus kombo +2 setiap benar berturut-turut (maksimum +10).<br/>
+        <b>Pelindung:</b> dapat digunakan 1 kali untuk menahan 1 kesalahan (nyawa tidak berkurang).<br/>
+        <b>Tanpa penanda waktu:</b> fokus pada pemahaman konsep terlebih dahulu.`;
     }
 
-    // Collision
-    function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
-    function circleRectCollide(cx, cy, r, rect){
-      const nx = clamp(cx, rect.x, rect.x + rect.w);
-      const ny = clamp(cy, rect.y, rect.y + rect.h);
-      const dx = cx - nx, dy = cy - ny;
-      return (dx*dx + dy*dy) <= r*r;
-    }
-    function resolveCircleRect(p, rect){
-      const closestX = clamp(p.x, rect.x, rect.x + rect.w);
-      const closestY = clamp(p.y, rect.y, rect.y + rect.h);
-      let dx = p.x - closestX, dy = p.y - closestY;
-      const dist2 = dx*dx + dy*dy;
-      if (dist2 === 0){ dx = (p.x < rect.x + rect.w/2) ? -1 : 1; dy = (p.y < rect.y + rect.h/2) ? -1 : 1; }
-      const dist = Math.sqrt(dist2 || 1);
-      const overlap = p.r - dist;
-      if (overlap > 0){ p.x += (dx/dist) * overlap; p.y += (dy/dist) * overlap; }
-    }
-
-    // Quiz
-    let activeTerminal = null;
-    let answered = false;
-    let hintStage = 0;
-
-    function openQuiz(terminalId){
-      if(done[terminalId]) return;
-      activeTerminal = terminalId;
-      const q = questions[terminalId];
-      answered = false; hintStage = 0;
-      hintText.textContent = "";
-      feedback.style.display = "none";
-      [c0,c1,c2,c3].forEach(c => c.classList.remove("correct","wrong"));
-      qHeader.textContent = `Soal ${terminalId+1}`;
-      qTag.textContent = `Terminal ${terminalId+1}`;
-      qPrompt.textContent = q.prompt;
-      t0.textContent = q.choices[0]; t1.textContent = q.choices[1]; t2.textContent = q.choices[2]; t3.textContent = q.choices[3];
-      overlay.style.display = "flex";
-      running = false;
-    }
-    function closeQuiz(){ overlay.style.display = "none"; running = true; activeTerminal = null; }
-
-    function chooseAnswer(idx){
-      if(activeTerminal === null || answered) return;
-      answered = true;
-      const q = questions[activeTerminal];
-      const correct = q.correct;
-      const els = [c0,c1,c2,c3];
-      const term = terminals[activeTerminal];
-      const cx = term.x + term.w/2, cy = term.y + term.h/2;
-
-      if(idx === correct){
-        score += 10; done[activeTerminal]=true; doneCount += 1;
-        fbMain.innerHTML = `✅ <b>Benar!</b> (+10)`; fbExplain.textContent = q.explain;
-        els[idx].classList.add("correct");
-        spawnConfetti(cx, cy, true);
-      }else{
-        lives -= 1;
-        fbMain.innerHTML = `❌ <b>Belum tepat.</b> Nyawa −1`; fbExplain.textContent = `Hint: ${q.hint1}`;
-        els[idx].classList.add("wrong"); els[correct].classList.add("correct");
-        spawnConfetti(cx, cy, false);
-      }
-      feedback.style.display = "block";
-      setHUD();
-
-      if(lives <= 0){ closeQuiz(); showResult(); }
-      else if(doneCount === questions.length){ closeQuiz(); showResult(); }
-    }
-
-    btnHint.addEventListener("click", ()=>{
-      if(activeTerminal === null) return;
-      const q = questions[activeTerminal];
-      hintStage += 1;
-      hintText.textContent = (hintStage === 1) ? q.hint1 : q.hint2;
-    });
-    btnClose.addEventListener("click", ()=>closeQuiz());
-    btnNext.addEventListener("click", ()=>closeQuiz());
-    c0.addEventListener("click", ()=>chooseAnswer(0));
-    c1.addEventListener("click", ()=>chooseAnswer(1));
-    c2.addEventListener("click", ()=>chooseAnswer(2));
-    c3.addEventListener("click", ()=>chooseAnswer(3));
-
-    // Keyboard
-    window.addEventListener("keydown",(e)=>{
-      const k = e.key.toLowerCase();
-      if(k==="arrowup"||k==="w") keys.up=true;
-      if(k==="arrowdown"||k==="s") keys.down=true;
-      if(k==="arrowleft"||k==="a") keys.left=true;
-      if(k==="arrowright"||k==="d") keys.right=true;
-    });
-    window.addEventListener("keyup",(e)=>{
-      const k = e.key.toLowerCase();
-      if(k==="arrowup"||k==="w") keys.up=false;
-      if(k==="arrowdown"||k==="s") keys.down=false;
-      if(k==="arrowleft"||k==="a") keys.left=false;
-      if(k==="arrowright"||k==="d") keys.right=false;
-    });
-
-    // Touch controls
-    function bindHold(btn, onDown, onUp){
-      const down = (e)=>{ e.preventDefault(); onDown(); };
-      const up   = (e)=>{ e.preventDefault(); onUp(); };
-      btn.addEventListener("pointerdown", down);
-      btn.addEventListener("pointerup", up);
-      btn.addEventListener("pointercancel", up);
-      btn.addEventListener("pointerleave", up);
-    }
-    bindHold(document.getElementById("btnUp"),    ()=>keys.up=true,    ()=>keys.up=false);
-    bindHold(document.getElementById("btnDown"),  ()=>keys.down=true,  ()=>keys.down=false);
-    bindHold(document.getElementById("btnLeft"),  ()=>keys.left=true,  ()=>keys.left=false);
-    bindHold(document.getElementById("btnRight"), ()=>keys.right=true, ()=>keys.right=false);
-    document.getElementById("btnStop").addEventListener("click", ()=>{ keys.up=keys.down=keys.left=keys.right=false; });
-    document.getElementById("btnRestart").addEventListener("click", resetGame);
-
-    // Drawing helpers
-    function roundRect(x,y,w,h,r){
-      const rr = Math.min(r, w/2, h/2);
-      ctx.beginPath();
-      ctx.moveTo(x+rr,y);
-      ctx.arcTo(x+w,y,x+w,y+h,rr);
-      ctx.arcTo(x+w,y+h,x,y+h,rr);
-      ctx.arcTo(x,y+h,x,y,rr);
-      ctx.arcTo(x,y,x+w,y,rr);
-      ctx.closePath();
-    }
-
-    function draw(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-
-      // Background gradient
-      const g = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-      g.addColorStop(0, "rgba(124,92,255,0.18)");
-      g.addColorStop(0.5,"rgba(51,209,255,0.10)");
-      g.addColorStop(1, "rgba(255,209,102,0.08)");
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-
-      // Grid
-      ctx.save();
-      ctx.globalAlpha = 0.10;
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 1;
-      for(let x=0; x<canvas.width; x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
-      for(let y=0; y<canvas.height; y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
-      ctx.restore();
-
-      // Walls
-      ctx.save();
-      for(const w of walls){
-        const wg = ctx.createLinearGradient(w.x,w.y,w.x+w.w,w.y+w.h);
-        wg.addColorStop(0,"rgba(255,255,255,0.10)");
-        wg.addColorStop(1,"rgba(255,255,255,0.05)");
-        ctx.fillStyle = wg;
-        ctx.strokeStyle = "rgba(255,255,255,0.16)";
-        ctx.lineWidth = 2;
-        roundRect(w.x,w.y,w.w,w.h,10);
-        ctx.fill(); ctx.stroke();
-      }
-      ctx.restore();
-
-      // Terminals
-      for(const t of terminals){
-        const doneThis = done[t.id];
-        const hue = doneThis ? 145 : (t.id*32) % 360;
-        const fill = doneThis ? `hsla(${hue}, 80%, 52%, 0.42)` : `hsla(${hue}, 85%, 56%, 0.25)`;
-        const stroke = doneThis ? `hsla(${hue}, 90%, 70%, 0.90)` : `hsla(${hue}, 90%, 70%, 0.65)`;
-        ctx.save();
-        ctx.shadowColor = stroke;
-        ctx.shadowBlur = doneThis ? 18 : 12;
-        ctx.fillStyle = fill;
-        ctx.strokeStyle = stroke;
-        ctx.lineWidth = 3;
-        roundRect(t.x,t.y,t.w,t.h,12);
-        ctx.fill(); ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle = "rgba(255,255,255,0.95)";
-        ctx.font = "900 15px system-ui, sans-serif";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(String(t.id+1), t.x+t.w/2, t.y+t.h/2);
-        ctx.restore();
-      }
-
-      // Confetti
-      for(let i=confetti.length-1;i>=0;i--){
-        const p = confetti[i];
-        p.x += p.vx; p.y += p.vy; p.vy += p.g; p.life -= 1; p.a = Math.max(0, p.life/70);
-        if(p.life <= 0){ confetti.splice(i,1); continue; }
-        ctx.save();
-        ctx.globalAlpha = p.a;
-        ctx.fillStyle = `hsla(${p.hue}, 90%, 62%, ${p.a})`;
-        ctx.translate(p.x, p.y);
-        roundRect(-p.r, -p.r, p.r*2, p.r*2, 2.5);
-        ctx.fill();
-        ctx.restore();
-      }
-
-      // Player
-      player.bob += 0.10;
-      const bob = Math.sin(player.bob) * 1.2;
-      ctx.save();
-      ctx.shadowColor = "rgba(51,209,255,0.8)";
-      ctx.shadowBlur = 16;
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
-      ctx.strokeStyle = "rgba(0,0,0,0.25)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(player.x, player.y + bob, player.r, 0, Math.PI*2);
-      ctx.fill(); ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = "rgba(0,0,0,0.65)";
-      ctx.beginPath(); ctx.arc(player.x-5, player.y-3 + bob, 2, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(player.x+5, player.y-3 + bob, 2, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = "rgba(0,0,0,0.55)";
-      ctx.beginPath(); ctx.arc(player.x, player.y+3 + bob, 5, 0, Math.PI); ctx.stroke();
-      ctx.restore();
-
-      // Overlay messages
-      if(lives <= 0){
-        ctx.save();
-        ctx.fillStyle = "rgba(0,0,0,0.55)";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle = "#fff";
-        ctx.font = "900 34px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("Nyawa habis!", canvas.width/2, canvas.height/2 - 12);
-        ctx.font = "16px system-ui, sans-serif";
-        ctx.fillText("Klik Restart untuk coba lagi.", canvas.width/2, canvas.height/2 + 18);
-        ctx.restore();
-      } else if(doneCount === questions.length){
-        ctx.save();
-        ctx.fillStyle = "rgba(0,0,0,0.48)";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle = "#fff";
-        ctx.font = "900 34px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("Semua terminal selesai!", canvas.width/2, canvas.height/2 - 12);
-        ctx.font = "16px system-ui, sans-serif";
-        ctx.fillText("Scroll sedikit untuk lihat hasil.", canvas.width/2, canvas.height/2 + 18);
-        ctx.restore();
-      }
-    }
-
-    function update(){
-      requestAnimationFrame(update);
-      if(!running){ draw(); return; }
-
-      let vx = 0, vy = 0;
-      if(keys.up) vy -= 1;
-      if(keys.down) vy += 1;
-      if(keys.left) vx -= 1;
-      if(keys.right) vx += 1;
-      const mag = Math.hypot(vx,vy) || 1;
-      player.vx = (vx/mag) * player.speed;
-      player.vy = (vy/mag) * player.speed;
-
-      player.x += player.vx;
-      player.y += player.vy;
-
-      for(const w of walls){
-        if(circleRectCollide(player.x, player.y, player.r, w)) resolveCircleRect(player, w);
-      }
-
-      for(const t of terminals){
-        if(done[t.id]) continue;
-        const rect = {x:t.x, y:t.y, w:t.w, h:t.h};
-        if(circleRectCollide(player.x, player.y, player.r, rect)){ openQuiz(t.id); break; }
-      }
-
-      draw();
-    }
-
-    setHUD();
-    update();
-  </script>
-</body>
-</html>
+    const AVATARS=["🧑‍🎓","👩‍🏫","🧠","🐱","🐼","🦊","🐸","🤖"];
+    function renderAvatars(){
+      avatarRow.innerHTML="";
+      AVATARS.forEach(a=>{
+        const div=document.createElement("div");
+        div.className="avatar"+(a===STATE.avatar?" sel":"");
+        div.textContent=a;
+        div.addEventListener("click",()=>{
