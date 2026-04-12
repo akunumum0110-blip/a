@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <title>Petualangan Hutan Segiempat - iPhone Monitor</title>
+  <style>
+    :root{
+      --green1:#78d46b; --green2:#4caf50; --green3:#2e7d32; --brown:#8d6e63;
+      --paper:#fff7df; --accent:#ffca28; --danger:#ef5350; --good:#43a047; --blue:#42a5f5;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(#bdf3ff,#d7ffd9);overflow:hidden;color:#173018;touch-action:none;-webkit-user-select:none;user-select:none}
+    #uiLayer{position:fixed;inset:0;pointer-events:none}
+    canvas{display:block;background:linear-gradient(#99e8ff 0 45%, #7ed957 45% 100%);touch-action:none}
+    .panel{pointer-events:auto;background:rgba(255,255,255,.96);border:3px solid #2e7d32;border-radius:18px;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+    #startScreen,#endScreen,#questionModal,#messageBox,#pauseTip{
+      position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);max-width:920px;width:min(92vw,920px);
+      z-index:10;padding:22px;
+    }
+    #startScreen h1,#endScreen h1{margin:0 0 8px;font-size:clamp(28px,4vw,48px);color:#1d5f28}
+    #startScreen p,#endScreen p{font-size:18px;line-height:1.5}
+    .btn{pointer-events:auto;border:none;border-radius:14px;padding:12px 18px;font-size:18px;font-weight:700;cursor:pointer;transition:.15s transform,.15s filter;touch-action:manipulation}
+    .btn:hover{transform:translateY(-1px);filter:brightness(1.03)}
+    .btn:active{transform:translateY(1px)}
+    .btnPrimary{background:var(--accent);color:#3c2b00}
+    .btnGreen{background:var(--good);color:#fff}
+    .btnRed{background:var(--danger);color:#fff}
+    .btnBlue{background:var(--blue);color:#fff}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    input[type="text"]{font-size:20px;padding:12px 14px;border-radius:12px;border:2px solid #7bbf7f;min-width:260px;width:min(100%,360px)}
+    #hud{position:fixed;left:12px;top:12px;display:flex;gap:10px;flex-wrap:wrap;z-index:5}
+    .chip{pointer-events:none;background:rgba(255,255,255,.9);border:2px solid #2e7d32;border-radius:999px;padding:10px 14px;font-weight:700;box-shadow:0 4px 10px rgba(0,0,0,.12)}
+    #questionModal{display:none;z-index:20}
+    #messageBox{display:none;z-index:21;width:min(86vw,650px)}
+    #pauseTip{display:none;z-index:9;width:min(80vw,460px);text-align:center;padding:14px 18px;background:rgba(255,248,225,.96)}
+    .questionTitle{margin:0 0 10px;font-size:28px;color:#1b5e20}
+    .questionText{font-size:18px;line-height:1.55;margin-bottom:16px;max-height:32vh;overflow:auto;padding-right:6px}
+    .answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .answerBtn{text-align:left;background:#f2fff0;border:2px solid #74be74;color:#164118;padding:14px;border-radius:14px;font-size:17px;cursor:pointer;font-weight:700;touch-action:manipulation;min-height:56px}
+    .answerBtn:hover{background:#e6ffe4}
+    .sub{opacity:.85;font-size:15px}
+    #joyWrap{position:fixed;left:max(12px, env(safe-area-inset-left));bottom:max(12px, env(safe-area-inset-bottom));width:138px;height:138px;display:none;z-index:6;pointer-events:auto;touch-action:none}
+    #joyBase{position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,.22);border:3px solid rgba(255,255,255,.62);backdrop-filter: blur(2px)}
+    #joyStick{position:absolute;left:44px;top:44px;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.92);border:2px solid #2e7d32}
+    #muteBtn{position:fixed;right:12px;top:12px;z-index:7}
+    #footerHint{position:fixed;right:12px;bottom:12px;z-index:5;background:rgba(255,255,255,.88);padding:8px 12px;border-radius:12px;border:2px solid #2e7d32;font-size:14px}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(135deg,#ffe082,#ffca28);border:2px solid #ad8600;border-radius:999px;font-weight:800;color:#543d00}
+    .scoreBig{font-size:56px;font-weight:900;color:#1d5f28;line-height:1}
+    .twoCol{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+    @media (max-width: 720px){
+      .answers{grid-template-columns:1fr}
+      .twoCol{grid-template-columns:1fr}
+      #joyWrap{display:block}
+      #mobileControls{display:grid}
+      #mobileTapHint{display:block}
+      #footerHint{font-size:12px;right:auto;left:12px;bottom:max(150px, calc(env(safe-area-inset-bottom) + 150px));max-width:220px}
+      #startScreen,#endScreen,#questionModal,#messageBox,#pauseTip{width:min(96vw,920px);padding:16px}
+      .questionText{max-height:28vh;font-size:16px}
+      input[type="text"]{width:100%;min-width:0}
+    }
+
+    .leaderboardBox{margin:16px auto 0;max-width:560px;text-align:left;background:rgba(255,255,255,.72);border:2px solid rgba(46,125,50,.18);border-radius:18px;padding:14px 16px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
+    .leaderboardTitle{margin:0 0 10px;font-size:22px;color:#1d5f28;font-weight:900}
+    .leaderboardList{display:flex;flex-direction:column;gap:8px}
+    .leaderRow{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(232,245,233,.95);border:1px solid rgba(46,125,50,.16)}
+    .leaderRow.top1{background:linear-gradient(135deg,#fff8d7,#ffe082)}
+    .leaderRow.top2{background:linear-gradient(135deg,#f5f5f5,#e0e0e0)}
+    .leaderRow.top3{background:linear-gradient(135deg,#ffe0b2,#ffcc80)}
+    .leaderRow.current{outline:3px solid #43a047}
+    .rankBadge{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;background:#2e7d32;color:#fff}
+    .leaderName{font-weight:800;color:#214d22}
+    .leaderMeta{font-size:13px;color:#466548;margin-top:2px}
+    .leaderScore{font-size:22px;font-weight:900;color:#1d5f28}
+    .emptyLeader{padding:10px 0;color:#466548}
+
+    #mobileControls{position:fixed;right:max(12px, env(safe-area-inset-right));bottom:max(12px, env(safe-area-inset-bottom));display:none;grid-template-columns:76px 76px;gap:10px;z-index:6;pointer-events:auto}
+    .mobileBtn{border:none;border-radius:18px;background:rgba(255,255,255,.9);border:2px solid #2e7d32;box-shadow:0 8px 20px rgba(0,0,0,.15);font-size:32px;font-weight:900;color:#1d5f28;height:76px;width:76px;touch-action:none}
+    .mobileBtn:active{transform:scale(.98)}
+    #mobileTapHint{position:fixed;left:50%;bottom:max(150px, calc(env(safe-area-inset-bottom) + 150px));transform:translateX(-50%);z-index:6;background:rgba(255,255,255,.88);padding:8px 12px;border-radius:12px;border:2px solid #2e7d32;font-size:13px;display:none}
+
+
+    .monitorPanel{margin-top:16px;background:rgba(240,255,240,.95);border:2px solid #7ab67e;border-radius:18px;padding:14px}
+    .monitorHeader{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    .miniBtn{border:none;border-radius:12px;padding:10px 14px;font-weight:800;background:#2e7d32;color:#fff;cursor:pointer;touch-action:manipulation}
+    .miniBtn.red{background:#c62828}
+    .monitorList{display:flex;flex-direction:column;gap:8px;max-height:240px;overflow:auto}
+    .monitorRow{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:#fff;border:1px solid rgba(46,125,50,.18)}
+    .monitorNo{width:36px;height:36px;border-radius:999px;background:#2e7d32;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900}
+    .monitorName{font-weight:800;color:#214d22}
+    .monitorMeta{font-size:13px;color:#466548}
+    .monitorScore{font-size:20px;font-weight:900;color:#1d5f28}
+
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="hud">
+    <div class="chip" id="nameChip">Nama: -</div>
+    <div class="chip" id="scoreChip">Skor: 0</div>
+    <div class="chip" id="postChip">Pos: 0 / 10</div>
+  </div>
+
+  <button id="muteBtn" class="btn btnBlue">🔊 Audio On</button>
+  <div id="footerHint">Gerak: tombol arah / WASD / analog sentuh</div>
+
+  <div id="startScreen" class="panel">
+    <div class="twoCol">
+      <div>
+        <h1>🌳 Petualangan Hutan</h1>
+        <p><b>Media pembelajaran interaktif</b> tentang bangun datar segiempat. Jelajahi hutan hijau, datangi <b>10 pos</b>, lalu jawab soal untuk mencapai harta karun.</p>
+        <p class="sub">Fitur: kamera mengikuti karakter, suasana hutan cerah, animasi karakter, skor, badge akhir, musik latar, dan efek suara.</p>
+        <div class="row" style="margin-top:18px">
+          <input id="nameInput" type="text" placeholder="Masukkan nama pemain" maxlength="24" />
+          <button id="playBtn" class="btn btnPrimary">▶ Play</button>
+        </div>
+      </div>
+      <div class="panel" style="padding:16px;background:#f3ffef;border-color:#7ab67e">
+        <b>Petunjuk Bermain</b>
+        <ol style="line-height:1.55;padding-left:20px">
+          <li>Isi nama lalu tekan <b>Play</b>.</li>
+          <li>Berjalan mengikuti jalan setapak ke setiap pos.</li>
+          <li>Ketika tiba di pos, soal akan muncul otomatis.</li>
+          <li>Soal harus dikerjakan berurutan.</li>
+          <li>Jawaban benar memberi skor lebih tinggi.</li>
+          <li>Setelah pos ke-10, raih harta karun.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="monitorPanel">
+      <div class="monitorHeader">
+        <div>
+          <b>📋 Monitor Penyelesaian</b>
+          <div class="sub">Terlihat siapa yang selesai lebih dulu pada perangkat ini.</div>
+        </div>
+        <div class="row">
+          <button id="refreshMonitorBtn" class="miniBtn">Muat Ulang</button>
+          <button id="resetMonitorBtn" class="miniBtn red">Reset Data</button>
+        </div>
+      </div>
+      <div id="monitorInfo" class="sub" style="margin-bottom:10px"></div>
+      <div id="monitorList" class="monitorList"></div>
+    </div>
+  </div>
+
+  <div id="pauseTip" class="panel">Berhenti di papan pos untuk membuka soal.</div>
+
+  <div id="questionModal" class="panel">
+    <h2 class="questionTitle" id="qTitle">Pos 1</h2>
+    <div class="questionText" id="qText"></div>
+    <div class="answers" id="answersWrap"></div>
+    <p class="sub" id="qNote" style="margin-top:10px">Jawab untuk melanjutkan perjalanan.</p>
+  </div>
+
+  <div id="messageBox" class="panel">
+    <h3 id="msgTitle" style="margin:0 0 8px;font-size:28px"></h3>
+    <div id="msgText" style="font-size:18px;line-height:1.55"></div>
+    <div class="row" style="margin-top:16px"><button id="msgBtn" class="btn btnGreen">Lanjut</button></div>
+  </div>
+
+  <div id="endScreen" class="panel" style="display:none;z-index:30">
+    <h1>🎉 Misi Selesai!</h1>
+    <p>Selamat, <b id="finalName">Pemain</b>! Kamu telah mencapai harta karun di ujung hutan.</p>
+    <div class="scoreBig" id="finalScore">0</div>
+    <p>Skor Akhir</p>
+    <p><span class="badge">🏅 Penjelajah Hutan Segiempat</span></p>
+    <div id="summaryText" style="font-size:18px;line-height:1.5;margin:14px 0 18px"></div>
+    <div class="leaderboardBox">
+      <h3 class="leaderboardTitle">🏆 Peringkat Pemain</h3>
+      <div id="rankInfo" class="sub" style="margin-bottom:10px"></div>
+      <div id="leaderboardList" class="leaderboardList"></div>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <button id="restartBtn" class="btn btnPrimary">Main Lagi</button>
+    </div>
+  </div>
+
+  <div id="joyWrap">
+    <div id="joyBase"></div>
+    <div id="joyStick"></div>
+  </div>
+  <div id="mobileControls">
+    <button class="mobileBtn" data-dir="up">▲</button>
+    <button class="mobileBtn" data-dir="right">▶</button>
+    <button class="mobileBtn" data-dir="left">◀</button>
+    <button class="mobileBtn" data-dir="down">▼</button>
+  </div>
+  <div id="mobileTapHint">Di HP: gunakan joystick kiri atau tombol arah kanan.</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const startScreen = document.getElementById('startScreen');
+  const endScreen = document.getElementById('endScreen');
+  const playBtn = document.getElementById('playBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const nameInput = document.getElementById('nameInput');
+  const nameChip = document.getElementById('nameChip');
+  const scoreChip = document.getElementById('scoreChip');
+  const postChip = document.getElementById('postChip');
+  const questionModal = document.getElementById('questionModal');
+  const qTitle = document.getElementById('qTitle');
+  const qText = document.getElementById('qText');
+  const answersWrap = document.getElementById('answersWrap');
+  const messageBox = document.getElementById('messageBox');
+  const msgTitle = document.getElementById('msgTitle');
+  const msgText = document.getElementById('msgText');
+  const msgBtn = document.getElementById('msgBtn');
+  const finalName = document.getElementById('finalName');
+  const finalScore = document.getElementById('finalScore');
+  const summaryText = document.getElementById('summaryText');
+  const rankInfo = document.getElementById('rankInfo');
+  const leaderboardList = document.getElementById('leaderboardList');
+  const pauseTip = document.getElementById('pauseTip');
+  const muteBtn = document.getElementById('muteBtn');
+  const joyWrap = document.getElementById('joyWrap');
+  const joyStick = document.getElementById('joyStick');
+  const mobileControls = document.getElementById('mobileControls');
+  const monitorList = document.getElementById('monitorList');
+  const monitorInfo = document.getElementById('monitorInfo');
+  const refreshMonitorBtn = document.getElementById('refreshMonitorBtn');
+  const resetMonitorBtn = document.getElementById('resetMonitorBtn');
+
+  let W = innerWidth, H = innerHeight;
+  const isTouchDevice = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  function resize(){ W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+  addEventListener('resize', resize); resize();
+
+  const questions = [
+    {
+      text: '1. Dalam kegiatan ekstrakurikuler keterampilan tangan, Fania membuat pola anyaman pada tikar dari daun pandan. Pola tersebut membentuk bangun datar yang memiliki dua pasang sisi sejajar dan masing-masing pasangan sisi tersebut sama panjang, tetapi sudut-sudutnya tidak harus siku-siku. Bangun datar yang sesuai adalah...',
+      options: ['A. Trapesium', 'B. Layang-layang', 'C. Jajargenjang', 'D. Belah Ketupat'],
+      correct: 2,
+      explain: 'Jajargenjang memiliki dua pasang sisi sejajar dan setiap pasangan sisi yang berhadapan sama panjang. Sudutnya tidak harus siku-siku.'
+    },
+    {
+      text: '2. Pada pembuatan hiasan dinding berbahan kayu, muncul motif geometris dengan empat sisi sama panjang dan dua diagonal yang saling berpotongan tegak lurus, namun sudut-sudutnya tidak semuanya siku-siku. Bangun datar yang sesuai adalah...',
+      options: ['A. Persegi Panjang', 'B. Jajargenjang', 'C. Belah Ketupat', 'D. Trapesium'],
+      correct: 2,
+      explain: 'Belah ketupat memiliki empat sisi sama panjang dan diagonal saling tegak lurus. Sudutnya tidak harus siku-siku.'
+    },
+    {
+      text: '3. Lapangan berbentuk persegi panjang dengan panjang 10 m dan lebar 5 m. Panjang dan lebar diperbesar menjadi 2 kali dari ukuran semula. Luas lapangan yang baru adalah...',
+      options: ['A. 50 m²', 'B. 100 m²', 'C. 200 m²', 'D. 400 m²'],
+      correct: 2,
+      explain: 'Luas awal = 10 × 5 = 50 m². Jika panjang dan lebar masing-masing menjadi 2 kali, luas menjadi 4 kali: 50 × 4 = 200 m².'
+    },
+    {
+      text: '4. Rangka layang-layang memiliki diagonal 18 cm dan 10 cm. Hasil perhitungan luas dinyatakan sebesar 90 cm². Kesimpulan yang tepat adalah...',
+      options: ['A. Benar, karena sesuai dengan rumus luas layang-layang', 'B. Benar, karena diagonalnya saling tegak lurus', 'C. Salah, karena luas seharusnya 180 cm²', 'D. Salah, karena hasil perkalian diagonal harus dibagi 2'],
+      correct: 0,
+      explain: 'Luas layang-layang = 1/2 × d1 × d2 = 1/2 × 18 × 10 = 90 cm². Jadi hasil 90 cm² benar.'
+    },
+    {
+      text: '5. Taman berbentuk persegi memiliki luas 4 m². Panjang setiap sisi taman diperpanjang menjadi 2 kali lipat. Luas taman yang baru adalah...',
+      options: ['A. 8 m²', 'B. 12 m²', 'C. 16 m²', 'D. 20 m²'],
+      correct: 2,
+      explain: 'Luas persegi berubah mengikuti kuadrat skala sisi. Jika sisi menjadi 2 kali, luas menjadi 4 kali: 4 × 4 = 16 m².'
+    },
+    {
+      text: '6. Ana menghitung luas belah ketupat dengan diagonal 12 cm dan 16 cm seperti ini: L = 12 × 16 = 192 cm². Kesalahannya terletak pada...',
+      options: ['A. Salah memilih rumus', 'B. Tidak membagi hasil perkalian dengan 2', 'C. Kesalahan pengukuran diagonal', 'D. Kesalahan penulisan satuan'],
+      correct: 1,
+      explain: 'Rumus luas belah ketupat adalah 1/2 × d1 × d2. Jadi hasil perkalian diagonal harus dibagi 2 terlebih dahulu.'
+    },
+    {
+      text: '7. Atap teras berbentuk trapesium memiliki sisi sejajar 4 m dan 6 m. Jika tinggi berubah menjadi dua kali dari tinggi semula 2 m, maka luas atap tersebut akan...',
+      options: ['A. Bertambah 12 m²', 'B. Menjadi 2 kali lipat', 'C. Tetap', 'D. Menjadi setengahnya'],
+      correct: 1,
+      explain: 'Luas trapesium = 1/2 × jumlah sisi sejajar × tinggi. Jika tinggi menjadi 2 kali, luas juga menjadi 2 kali.'
+    },
+    {
+      text: '8. Luas rangka layang-layang harus 120 cm². Jika salah satu diagonal 20 cm, maka panjang diagonal lainnya adalah...',
+      options: ['A. 8 cm', 'B. 10 cm', 'C. 12 cm', 'D. 15 cm'],
+      correct: 2,
+      explain: 'Gunakan rumus luas layang-layang: 120 = 1/2 × 20 × d2. Maka 120 = 10 × d2, jadi d2 = 12 cm.'
+    },
+    {
+      text: '9. Motif jajargenjang memiliki luas 150 cm² dan tinggi 10 cm. Panjang alas motif anyaman tersebut adalah...',
+      options: ['A. 10 cm', 'B. 12 cm', 'C. 15 cm', 'D. 20 cm'],
+      correct: 2,
+      explain: 'Luas jajargenjang = alas × tinggi. Maka alas = 150 ÷ 10 = 15 cm.'
+    },
+    {
+      text: '10. Taman baru memiliki luas 100 m². Bentuknya diubah menjadi persegi panjang tanpa mengubah luas. Pasangan panjang dan lebar yang memenuhi adalah...',
+      options: ['A. 8 m dan 10 m', 'B. 5 m dan 20 m', 'C. 6 m dan 15 m', 'D. 4 m dan 20 m'],
+      correct: 1,
+      explain: 'Cek hasil kali panjang × lebar. Hanya 5 × 20 = 100 m².'
+    }
+  ];
+
+  const world = { width: 5600, height: 1400 };
+  const pathPoints = [];
+  const stations = [];
+  for(let i=0;i<10;i++){
+    const x = 400 + i*500 + (i%2?120:-60);
+    const y = 760 + Math.sin(i*0.9)*210;
+    pathPoints.push({x,y});
+    stations.push({x,y,index:i,triggered:false});
+  }
+  const treasure = { x: stations[9].x + 380, y: stations[9].y - 40 };
+
+  const player = {
+    x: 160, y: 760, vx: 0, vy: 0, speed: 240,
+    radius: 24, state: 'idle', face: 'normal', anim: 0
+  };
+  const camera = { x: 0, y: 0 };
+  const input = {left:false,right:false,up:false,down:false,ax:0,ay:0};
+
+  let running = false;
+  let gameOver = false;
+  let activeQuestion = 0;
+  let score = 0;
+  let playerName = '';
+  let answered = [];
+  let audioEnabled = true;
+  let currentMessageAction = null;
+  let audioStarted = false;
+
+  const keys = new Set();
+  addEventListener('keydown', e => {
+    keys.add(e.key.toLowerCase());
+    if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(e.key.toLowerCase())) e.preventDefault();
+  });
+  addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
+
+  function updateKeyboardInput(){
+    input.left = keys.has('arrowleft') || keys.has('a');
+    input.right = keys.has('arrowright') || keys.has('d');
+    input.up = keys.has('arrowup') || keys.has('w');
+    input.down = keys.has('arrowdown') || keys.has('s');
+  }
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let ac = null, bgmTimer = null, footstepTimer = 0;
+  function ensureAudio(){
+    if(!AudioCtx || !audioEnabled) return;
+    if(!ac) ac = new AudioCtx();
+    if(ac.state === 'suspended') ac.resume();
+    if(!audioStarted){ startBGM(); audioStarted = true; }
+  }
+  function beep(freq=440,duration=0.12,type='sine',gainVal=0.04){
+    if(!audioEnabled || !AudioCtx) return;
+    ensureAudio();
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gainVal;
+    o.connect(g); g.connect(ac.destination);
+    const t = ac.currentTime;
+    g.gain.setValueAtTime(gainVal, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    o.start(t); o.stop(t + duration);
+  }
+  function playCorrect(){ beep(660,0.10,'triangle',0.05); setTimeout(()=>beep(880,0.14,'triangle',0.05),80); }
+  function playWrong(){ beep(240,0.18,'sawtooth',0.05); setTimeout(()=>beep(180,0.18,'sawtooth',0.04),100); }
+  function playFootstep(){ beep(110,0.04,'square',0.018); }
+  function startBGM(){
+    if(!audioEnabled || !AudioCtx) return;
+    if(bgmTimer) return;
+    const seq = [523,659,784,659,587,659,523,494];
+    let i=0;
+    bgmTimer = setInterval(()=>{
+      if(!running || questionModal.style.display==='block' || messageBox.style.display==='block' || endScreen.style.display==='block') return;
+      beep(seq[i%seq.length],0.22,'triangle',0.018);
+      i++;
+    }, 380);
+  }
+  function stopBGM(){ if(bgmTimer){ clearInterval(bgmTimer); bgmTimer = null; } }
+
+  muteBtn.onclick = () => {
+    audioEnabled = !audioEnabled;
+    muteBtn.textContent = audioEnabled ? '🔊 Audio On' : '🔈 Audio Off';
+    if(audioEnabled){ ensureAudio(); }
+    else { stopBGM(); audioStarted = false; if(ac) ac.close(); ac = null; }
+  };
+
+  function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+  function dist(ax,ay,bx,by){ return Math.hypot(ax-bx, ay-by); }
+  const RESULT_KEY = 'petualangan_hutan_segiempat_results_v2';
+  let gameStartAt = 0;
+
+  function loadResults(){
+    try {
+      const raw = localStorage.getItem(RESULT_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveResults(items){
+    try { localStorage.setItem(RESULT_KEY, JSON.stringify(items)); } catch (e) {}
+  }
+
+  function formatDuration(ms){
+    const total = Math.max(0, Math.round(ms/1000));
+    const m = Math.floor(total/60);
+    const s = total % 60;
+    return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+
+  function getNextFinishOrder(items){
+    return items.reduce((max,it)=>Math.max(max, Number(it.finishOrder)||0), 0) + 1;
+  }
+
+  function recordResult(name, scoreValue, correctCount, durationMs){
+    const items = loadResults();
+    const finishOrder = getNextFinishOrder(items);
+    const entry = {
+      id: 'r_' + Date.now() + '_' + Math.random().toString(16).slice(2),
+      name: (name || 'Petualang').slice(0, 24),
+      score: scoreValue,
+      correct: correctCount,
+      durationMs: durationMs,
+      finishOrder: finishOrder,
+      playedAt: new Date().toISOString()
+    };
+    items.push(entry);
+    saveResults(items);
+
+    const ranking = [...items].sort((a,b) => (b.score - a.score) || (b.correct - a.correct) || ((a.durationMs||0) - (b.durationMs||0)) || ((a.finishOrder||0) - (b.finishOrder||0)));
+    const top10 = ranking.slice(0,10);
+    const rank = ranking.findIndex(it => it.id === entry.id) + 1;
+    return { entry, rank, list: top10, all: items };
+  }
+
+  function renderLeaderboard(result){
+    const source = result?.all || loadResults();
+    const list = [...source].sort((a,b) => (b.score - a.score) || (b.correct - a.correct) || ((a.durationMs||0) - (b.durationMs||0)) || ((a.finishOrder||0) - (b.finishOrder||0))).slice(0,10);
+    leaderboardList.innerHTML = '';
+    if(!list.length){
+      leaderboardList.innerHTML = '<div class="emptyLeader">Belum ada data pemain tersimpan.</div>';
+      rankInfo.textContent = '';
+      return;
+    }
+    if(result?.rank){
+      const label = result.rank <= 10 ? 'Masuk papan peringkat!' : 'Sudah tercatat, tetapi belum masuk 10 besar.';
+      rankInfo.textContent = 'Peringkat skor: #' + result.rank + ' • Urutan selesai: #' + result.entry.finishOrder + ' • Waktu: ' + formatDuration(result.entry.durationMs) + ' — ' + label;
+    } else {
+      rankInfo.textContent = 'Top 10 berdasarkan skor, jumlah benar, lalu waktu tercepat.';
+    }
+    list.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'leaderRow top' + (idx + 1);
+      if(result?.entry?.id === item.id) row.className += ' current';
+      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : String(idx + 1);
+      const played = item.playedAt ? new Date(item.playedAt).toLocaleString('id-ID', { dateStyle:'short', timeStyle:'short' }) : '-';
+      row.innerHTML = '<div class="rankBadge">' + medal + '</div>' +
+        '<div><div class="leaderName">' + item.name + '</div><div class="leaderMeta">Benar: ' + item.correct + '/10 • Waktu: ' + formatDuration(item.durationMs||0) + ' • Finish #' + item.finishOrder + ' • ' + played + '</div></div>' +
+        '<div class="leaderScore">' + item.score + '</div>';
+      leaderboardList.appendChild(row);
+    });
+  }
+
+  function renderMonitor(){
+    const items = loadResults().sort((a,b)=> (a.finishOrder||0) - (b.finishOrder||0));
+    monitorList.innerHTML = '';
+    if(!items.length){
+      monitorInfo.textContent = 'Belum ada pemain yang menyelesaikan permainan.';
+      monitorList.innerHTML = '<div class="emptyLeader">Data selesai bermain akan muncul di sini.</div>';
+      return;
+    }
+    monitorInfo.textContent = 'Urutan selesai tercepat pada perangkat ini: ' + items.length + ' pemain tercatat.';
+    items.slice(-20).forEach(item => {
+      const row = document.createElement('div');
+      const when = item.playedAt ? new Date(item.playedAt).toLocaleString('id-ID', { dateStyle:'short', timeStyle:'short' }) : '-';
+      row.className = 'monitorRow';
+      row.innerHTML = '<div class="monitorNo">' + item.finishOrder + '</div>' +
+        '<div><div class="monitorName">' + item.name + '</div><div class="monitorMeta">Skor ' + item.score + ' • Benar ' + item.correct + '/10 • Waktu ' + formatDuration(item.durationMs||0) + ' • ' + when + '</div></div>' +
+        '<div class="monitorScore">Selesai</div>';
+      monitorList.appendChild(row);
+    });
+  }
+  function resetGame(){
+    player.x = 160; player.y = 760; player.vx = 0; player.vy = 0; player.state='idle'; player.face='normal';
+    camera.x = 0; camera.y = 0;
+    activeQuestion = 0; score = 0; gameOver = false; answered = [];
+    stations.forEach(s => s.triggered = false);
+    gameStartAt = 0;
+    updateHUD();
+  }
+
+  function startGame(){
+    playerName = (nameInput.value || '').trim() || 'Petualang';
+    nameChip.textContent = 'Nama: ' + playerName;
+    startScreen.style.display = 'none';
+    endScreen.style.display = 'none';
+    questionModal.style.display = 'none';
+    messageBox.style.display = 'none';
+    running = true;
+    resetGame();
+    gameStartAt = Date.now();
+    try { ensureAudio(); } catch(e) {}
+  }
+  playBtn.onclick = startGame;
+  playBtn.addEventListener('touchend', e => { e.preventDefault(); startGame(); }, {passive:false});
+  restartBtn.onclick = () => { startScreen.style.display='block'; endScreen.style.display='none'; running=false; renderLeaderboard(); renderMonitor(); };
+  nameInput.addEventListener('keydown', e => { if(e.key==='Enter') startGame(); });
+  refreshMonitorBtn.onclick = () => renderMonitor();
+  resetMonitorBtn.onclick = () => {
+    if(confirm('Hapus semua data monitor dan peringkat di perangkat ini?')){
+      try { localStorage.removeItem(RESULT_KEY); } catch(e) {}
+      renderMonitor();
+      renderLeaderboard();
+    }
+  };
+  document.addEventListener('touchmove', e => { if(running) e.preventDefault(); }, {passive:false});
+
+  function updateHUD(){
+    scoreChip.textContent = 'Skor: ' + score;
+    postChip.textContent = 'Pos: ' + activeQuestion + ' / 10';
+  }
+
+  function showMessage(title, html, btnLabel='Lanjut', callback=null){
+    msgTitle.textContent = title;
+    msgText.innerHTML = html;
+    msgBtn.textContent = btnLabel;
+    currentMessageAction = callback;
+    messageBox.style.display = 'block';
+  }
+  msgBtn.onclick = () => {
+    messageBox.style.display = 'none';
+    const cb = currentMessageAction;
+    currentMessageAction = null;
+    if(cb) cb();
+  };
+
+  function openQuestion(idx){
+    const q = questions[idx];
+    if(!q) return;
+    questionModal.style.display = 'block';
+    qTitle.textContent = 'Pos ' + (idx+1);
+    qText.textContent = q.text;
+    answersWrap.innerHTML = '';
+    q.options.forEach((opt, i) => {
+      const b = document.createElement('button');
+      b.className = 'answerBtn';
+      b.textContent = opt;
+      b.onclick = () => submitAnswer(i);
+      answersWrap.appendChild(b);
+    });
+  }
+
+  function submitAnswer(choice){
+    const q = questions[activeQuestion];
+    questionModal.style.display = 'none';
+    const isCorrect = choice === q.correct;
+    answered.push(isCorrect);
+    if(isCorrect){
+      score += 10;
+      player.face = 'happy';
+      playCorrect();
+      activeQuestion++;
+      updateHUD();
+      showMessage('Jawaban Benar! 😊', '<p>Hebat, '+playerName+'! Jawabanmu tepat.</p><p><b>Skor +10</b></p>', 'Lanjut', ()=>{
+        player.face = 'normal';
+      });
+    } else {
+      score += 4;
+      player.face = 'sad';
+      playWrong();
+      activeQuestion++;
+      updateHUD();
+      showMessage('Belum Tepat 😔', '<p>Kamu tetap bisa melanjutkan perjalanan.</p><p><b>Pembahasan:</b> '+q.explain+'</p><p><b>Skor +4</b></p>', 'Lanjut', ()=>{
+        player.face = 'normal';
+      });
+    }
+  }
+
+  function finishGame(){
+    running = false;
+    gameOver = true;
+    finalName.textContent = playerName;
+    finalScore.textContent = score;
+    const benar = answered.filter(Boolean).length;
+    const durationMs = gameStartAt ? (Date.now() - gameStartAt) : 0;
+    const leaderboardResult = recordResult(playerName, score, benar, durationMs);
+    summaryText.innerHTML = 'Jawaban benar: <b>'+benar+'</b> dari <b>10</b> soal.<br/>Waktu bermain: <b>' + formatDuration(durationMs) + '</b><br/>Urutan selesai kamu: <b>#' + leaderboardResult.entry.finishOrder + '</b> pada perangkat ini.';
+    renderLeaderboard(leaderboardResult);
+    renderMonitor();
+    endScreen.style.display = 'block';
+    try { playCorrect(); setTimeout(playCorrect,150); setTimeout(playCorrect,300); } catch(e) {}
+  }
+
+  function worldToScreen(x,y){ return { x: x - camera.x, y: y - camera.y }; }
+
+  function drawBackground(){
+    // far trees
+    for(let layer=0; layer<2; layer++){
+      const par = layer===0 ? 0.35 : 0.55;
+      const offsetX = camera.x * par;
+      const start = Math.floor(offsetX/180)*180 - 180;
+      for(let x=start;x<W+offsetX+180;x+=180){
+        const sx = x - offsetX;
+        const baseY = layer===0 ? H*0.45 : H*0.52;
+        const h = layer===0 ? 140 : 120;
+        ctx.fillStyle = layer===0 ? '#5eb65b' : '#3f9a43';
+        ctx.beginPath();
+        ctx.arc(sx+60, baseY, 42, 0, Math.PI*2); ctx.fill();
+        ctx.arc(sx+95, baseY-10, 50, 0, Math.PI*2); ctx.fill();
+        ctx.arc(sx+130, baseY+2, 38, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#795548';
+        ctx.fillRect(sx+90, baseY+10, 12, h);
+      }
+    }
+
+    // bushes and rocks
+    const par = 0.8; const offset = camera.x*par;
+    const start = Math.floor(offset/110)*110 - 110;
+    for(let x=start;x<W+offset+110;x+=110){
+      const sx = x-offset;
+      const y = H*0.72 + Math.sin((x+120)/140)*10;
+      ctx.fillStyle = '#4caf50';
+      ctx.beginPath(); ctx.arc(sx+24,y,18,0,Math.PI*2); ctx.arc(sx+48,y-6,22,0,Math.PI*2); ctx.arc(sx+72,y,18,0,Math.PI*2); ctx.fill();
+      if((x/110)%3===0){ ctx.fillStyle='#9e9e9e'; ctx.beginPath(); ctx.ellipse(sx+82,y+28,16,10,0,0,Math.PI*2); ctx.fill(); }
+    }
+  }
+
+  function drawPath(){
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // path body
+    ctx.strokeStyle = '#c8a26b';
+    ctx.lineWidth = 68;
+    ctx.beginPath();
+    let p = worldToScreen(40,780); ctx.moveTo(p.x,p.y);
+    pathPoints.forEach(pt => { const s = worldToScreen(pt.x,pt.y); ctx.lineTo(s.x,s.y); });
+    const t = worldToScreen(treasure.x-40, treasure.y+60); ctx.lineTo(t.x,t.y);
+    ctx.stroke();
+    ctx.strokeStyle = '#ad8754'; ctx.lineWidth = 8; ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawRoundRect(x,y,w,h,r){
+    const rr=Math.min(r,w/2,h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);
+    ctx.lineTo(x+w-rr,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+rr);
+    ctx.lineTo(x+w,y+h-rr);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-rr,y+h);
+    ctx.lineTo(x+rr,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-rr);
+    ctx.lineTo(x,y+rr);
+    ctx.quadraticCurveTo(x,y,x+rr,y);
+    ctx.closePath();
+  }
+
+  function drawStations(){
+    stations.forEach((s, idx) => {
+      const p = worldToScreen(s.x,s.y);
+      // pole
+      ctx.fillStyle = '#6d4c41';
+      ctx.fillRect(p.x-4,p.y-56,8,56);
+      // sign
+      ctx.fillStyle = idx < activeQuestion ? '#b2df8a' : '#fff8d6';
+      ctx.strokeStyle = '#6d4c41'; ctx.lineWidth = 3;
+      drawRoundRect(p.x-40,p.y-98,80,38,8); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#2e4d1e'; ctx.font = 'bold 18px Arial'; ctx.textAlign='center';
+      ctx.fillText('POS ' + (idx+1), p.x, p.y-73);
+      // marker glow for active pos
+      if(idx===activeQuestion){
+        ctx.strokeStyle = 'rgba(255,235,59,.9)'; ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(p.x,p.y,34 + Math.sin(performance.now()/180)*4, 0, Math.PI*2); ctx.stroke();
+      }
+    });
+  }
+
+  function drawTreasure(){
+    const p = worldToScreen(treasure.x, treasure.y);
+    ctx.fillStyle = '#5d4037'; ctx.fillRect(p.x-42,p.y-18,84,36);
+    ctx.fillStyle = '#ffca28'; ctx.fillRect(p.x-42,p.y-8,84,26);
+    ctx.fillStyle = '#8d6e63'; ctx.beginPath(); ctx.arc(p.x,p.y-18,42,Math.PI,0); ctx.fill();
+    ctx.strokeStyle = '#5d4037'; ctx.lineWidth=4; ctx.stroke();
+    ctx.fillStyle = '#fff59d'; ctx.fillRect(p.x-8,p.y+2,16,12);
+    ctx.fillStyle = '#ffd54f';
+    for(let i=0;i<8;i++){ ctx.beginPath(); ctx.arc(p.x-26+i*8,p.y-2-Math.random()*2,3.2,0,Math.PI*2); ctx.fill(); }
+  }
+
+  function drawPlayer(){
+    const p = worldToScreen(player.x, player.y);
+    const walk = Math.sin(player.anim*12);
+    // shadow
+    ctx.fillStyle='rgba(0,0,0,.16)'; ctx.beginPath(); ctx.ellipse(p.x,p.y+32,22,8,0,0,Math.PI*2); ctx.fill();
+    // legs
+    ctx.strokeStyle='#283593'; ctx.lineWidth=6;
+    ctx.beginPath(); ctx.moveTo(p.x-8,p.y+16); ctx.lineTo(p.x-10+walk*4,p.y+32); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(p.x+8,p.y+16); ctx.lineTo(p.x+10-walk*4,p.y+32); ctx.stroke();
+    // body
+    ctx.fillStyle='#ffca28'; ctx.fillRect(p.x-14,p.y-12,28,32);
+    // arms
+    ctx.strokeStyle='#f1b08c'; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(p.x-14,p.y-2); ctx.lineTo(p.x-24-walk*4,p.y+10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(p.x+14,p.y-2); ctx.lineTo(p.x+24+walk*4,p.y+10); ctx.stroke();
+    // backpack
+    ctx.fillStyle='#e53935'; ctx.fillRect(p.x-20,p.y-8,8,20);
+    // head
+    ctx.fillStyle='#f3c7a5'; ctx.beginPath(); ctx.arc(p.x,p.y-28,16,0,Math.PI*2); ctx.fill();
+    // hair
+    ctx.fillStyle='#3e2723'; ctx.beginPath(); ctx.arc(p.x,p.y-32,16,Math.PI,0); ctx.fill();
+    // face
+    ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(p.x-6,p.y-30,1.8,0,Math.PI*2); ctx.arc(p.x+6,p.y-30,1.8,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#222'; ctx.lineWidth=2;
+    ctx.beginPath();
+    if(player.face==='happy') ctx.arc(p.x,p.y-23,6,0,Math.PI,false);
+    else if(player.face==='sad') ctx.arc(p.x,p.y-18,6,Math.PI,0,false);
+    else { ctx.moveTo(p.x-5,p.y-23); ctx.lineTo(p.x+5,p.y-23); }
+    ctx.stroke();
+  }
+
+  function drawStartGate(){
+    const p = worldToScreen(80,760);
+    ctx.fillStyle='#6d4c41'; ctx.fillRect(p.x-10,p.y-120,20,120); ctx.fillRect(p.x+90,p.y-120,20,120);
+    ctx.fillStyle='#8d6e63'; ctx.fillRect(p.x-10,p.y-120,120,18);
+    ctx.fillStyle='#fff3c4'; ctx.fillRect(p.x+14,p.y-98,72,34);
+    ctx.fillStyle='#3a3a3a'; ctx.font='bold 16px Arial'; ctx.textAlign='center'; ctx.fillText('MASUK HUTAN', p.x+50, p.y-75);
+  }
+
+  function drawHUDPrompts(){
+    if(!running) return;
+    const s = stations[activeQuestion];
+    if(!s) return;
+    const d = dist(player.x,player.y,s.x,s.y);
+    pauseTip.style.display = d < 120 && questionModal.style.display==='none' && messageBox.style.display==='none' ? 'block' : 'none';
+  }
+
+  function update(dt){
+    if(!running || questionModal.style.display==='block' || messageBox.style.display==='block' || endScreen.style.display==='block') return;
+    updateKeyboardInput();
+    let dx = (input.right?1:0) - (input.left?1:0) + input.ax;
+    let dy = (input.down?1:0) - (input.up?1:0) + input.ay;
+    const len = Math.hypot(dx,dy) || 1;
+    dx/=len; dy/=len;
+    const moving = Math.hypot(dx,dy) > 0.1;
+    player.state = moving ? 'walk' : 'idle';
+    player.vx = dx*player.speed;
+    player.vy = dy*player.speed;
+    player.x = clamp(player.x + player.vx*dt, 30, world.width-30);
+    player.y = clamp(player.y + player.vy*dt, 220, world.height-140);
+    if(moving){
+      player.anim += dt*1.7;
+      footstepTimer += dt;
+      if(footstepTimer > 0.30){ playFootstep(); footstepTimer = 0; }
+    }
+
+    camera.x = lerp(camera.x, clamp(player.x - W/2, 0, world.width - W), 0.08);
+    camera.y = lerp(camera.y, clamp(player.y - H/2, 0, world.height - H), 0.08);
+
+    const s = stations[activeQuestion];
+    if(s && dist(player.x,player.y,s.x,s.y) < 50){
+      s.triggered = true;
+      openQuestion(activeQuestion);
+    }
+
+    if(activeQuestion >= 10 && dist(player.x,player.y,treasure.x,treasure.y) < 75 && !gameOver){
+      finishGame();
+    }
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    drawBackground();
+    drawPath();
+    drawStartGate();
+    drawStations();
+    drawTreasure();
+    drawPlayer();
+
+    // title overlay while playing
+    if(running && activeQuestion < 10){
+      ctx.fillStyle='rgba(255,255,255,.75)'; ctx.fillRect(W/2-175,18,350,34);
+      ctx.strokeStyle='#2e7d32'; ctx.strokeRect(W/2-175,18,350,34);
+      ctx.fillStyle='#1d5f28'; ctx.textAlign='center'; ctx.font='bold 18px Arial';
+      ctx.fillText('Jelajahi hutan dan selesaikan semua pos soal!', W/2, 40);
+    }
+
+    if(running && activeQuestion >= 10 && !gameOver){
+      ctx.fillStyle='rgba(255,248,225,.94)'; ctx.fillRect(W/2-180,18,360,40);
+      ctx.strokeStyle='#8d6e63'; ctx.strokeRect(W/2-180,18,360,40);
+      ctx.fillStyle='#5d4037'; ctx.font='bold 20px Arial';
+      ctx.fillText('Menuju harta karun! ✨', W/2, 45);
+    }
+
+    drawHUDPrompts();
+  }
+
+  let last = performance.now();
+  function loop(now){
+    const dt = Math.min((now-last)/1000, 0.033); last = now;
+    update(dt); render(); requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // virtual joystick
+  let joyActive = false, joyId = null, baseRect = null;
+  function joyStart(e){
+    const t = e.changedTouches ? e.changedTouches[0] : e;
+    joyActive = true; joyId = t.identifier ?? 'mouse';
+    baseRect = joyWrap.getBoundingClientRect();
+    joyMove(e);
+  }
+  function joyMove(e){
+    if(!joyActive) return;
+    const touches = e.changedTouches ? [...e.touches].filter(t=>t.identifier===joyId || joyId==='mouse') : [e];
+    const t = touches[0] || (e.changedTouches ? [...e.changedTouches].find(t=>t.identifier===joyId) : e);
+    if(!t) return;
+    const cx = baseRect.left + baseRect.width/2;
+    const cy = baseRect.top + baseRect.height/2;
+    let dx = t.clientX - cx;
+    let dy = t.clientY - cy;
+    const max = 42; const m = Math.hypot(dx,dy);
+    if(m > max){ dx = dx/m*max; dy = dy/m*max; }
+    joyStick.style.left = (44 + dx) + 'px';
+    joyStick.style.top = (44 + dy) + 'px';
+    input.ax = dx/max; input.ay = dy/max;
+    e.preventDefault();
+  }
+  function joyEnd(e){
+    joyActive = false; input.ax = 0; input.ay = 0;
+    joyStick.style.left = '44px'; joyStick.style.top = '44px';
+  }
+  joyWrap.addEventListener('touchstart', joyStart, {passive:false});
+  joyWrap.addEventListener('touchmove', joyMove, {passive:false});
+  joyWrap.addEventListener('touchend', joyEnd, {passive:false});
+  joyWrap.addEventListener('mousedown', joyStart);
+  addEventListener('mousemove', joyMove);
+  addEventListener('mouseup', joyEnd);
+
+  if(mobileControls){
+    const setDir = (dir, pressed) => { input[dir] = pressed; };
+    mobileControls.querySelectorAll('.mobileBtn').forEach(btn => {
+      const dir = btn.dataset.dir;
+      const on = ev => { ev.preventDefault(); ensureAudio(); setDir(dir, true); };
+      const off = ev => { ev.preventDefault(); setDir(dir, false); };
+      btn.addEventListener('touchstart', on, {passive:false});
+      btn.addEventListener('touchend', off, {passive:false});
+      btn.addEventListener('touchcancel', off, {passive:false});
+      btn.addEventListener('mousedown', on);
+      btn.addEventListener('mouseup', off);
+      btn.addEventListener('mouseleave', off);
+    });
+  }
+
+  document.addEventListener('touchstart', () => { try { ensureAudio(); } catch(e) {} }, {passive:true});
+
+  if(isTouchDevice){
+    document.getElementById('footerHint').textContent = 'Di HP: gunakan joystick kiri atau tombol arah di kanan';
+    joyWrap.style.display = 'block';
+    if(mobileControls) mobileControls.style.display = 'grid';
+  }
+
+  // initial HUD
+  updateHUD();
+  renderLeaderboard();
+  renderMonitor();
+})();
+</script>
+</body>
+</html>
