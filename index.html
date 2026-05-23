@@ -1,57 +1,168 @@
-
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuis Kanji JLPT N3 by WANNNZ39</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); }
-.quiz-wrap { padding: 1rem 0; }
-.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
-.title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
-.stats { display: flex; gap: 12px; }
-.stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 6px 14px; font-size: 13px; color: var(--color-text-secondary); }
-.stat span { font-weight: 500; color: var(--color-text-primary); }
-.progress-bar { height: 4px; background: var(--color-background-secondary); border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
-.progress-fill { height: 100%; background: #1D9E75; border-radius: 4px; transition: width 0.4s ease; }
-.mode-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.mode-btn { padding: 6px 14px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; color: var(--color-text-secondary); transition: all 0.15s; }
-.mode-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
-.mode-btn:hover:not(.active) { background: var(--color-background-secondary); }
-.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 2rem 1.5rem; text-align: center; margin-bottom: 1.25rem; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
-.kanji-big { font-size: 72px; line-height: 1; color: var(--color-text-primary); font-weight: 400; }
-.hari-badge { font-size: 11px; color: var(--color-text-tertiary); background: var(--color-background-tertiary); padding: 3px 10px; border-radius: 12px; }
-.hint { font-size: 14px; color: var(--color-text-secondary); font-style: italic; }
-.word-display { font-size: 22px; color: var(--color-text-primary); font-weight: 500; }
-.reading { font-size: 15px; color: var(--color-text-secondary); }
-.options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
-.opt { background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 14px 12px; font-size: 15px; cursor: pointer; transition: all 0.15s; color: var(--color-text-primary); text-align: center; min-height: 60px; display: flex; align-items: center; justify-content: center; }
-.opt:hover:not(.disabled) { background: var(--color-background-secondary); border-color: var(--color-border-primary); }
-.opt.correct { background: var(--color-background-success); border-color: var(--color-border-success); color: var(--color-text-success); }
-.opt.wrong { background: var(--color-background-danger); border-color: var(--color-border-danger); color: var(--color-text-danger); }
-.opt.disabled { cursor: default; }
-.feedback { padding: 12px 16px; border-radius: var(--border-radius-md); font-size: 14px; margin-bottom: 1.25rem; display: none; }
-.feedback.show { display: block; }
-.feedback.ok { background: var(--color-background-success); color: var(--color-text-success); }
-.feedback.bad { background: var(--color-background-danger); color: var(--color-text-danger); }
-.next-btn { width: 100%; padding: 13px; font-size: 15px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; color: var(--color-text-primary); transition: all 0.15s; display: none; }
-.next-btn.show { display: block; }
-.next-btn:hover { background: var(--color-background-secondary); }
-.result-box { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 2rem; text-align: center; display: none; }
-.result-box.show { display: block; }
-.result-score { font-size: 48px; font-weight: 500; color: var(--color-text-primary); margin: 0.5rem 0; }
-.result-label { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
-.restart-btn { padding: 10px 28px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; font-size: 14px; color: var(--color-text-primary); }
-.restart-btn:hover { background: var(--color-background-secondary); }
-.filter-row { display: flex; gap: 8px; margin-bottom: 1.25rem; align-items: center; flex-wrap: wrap; }
-.filter-label { font-size: 13px; color: var(--color-text-secondary); }
-select { font-size: 13px; padding: 6px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; }
+  :root {
+    /* Tema Dark Mode */
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --bg-hover: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    /* Warna Aksen & Status */
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --success: #10b981;
+    --danger: #ef4444;
+    
+    --border-color: #334155;
+    --border-radius-md: 8px;
+    --border-radius-lg: 16px;
+    --font-sans: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body { 
+    font-family: var(--font-sans); 
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px 15px;
+  }
+
+  .quiz-wrap { 
+    width: 100%;
+    max-width: 600px; /* Ukuran pas untuk PC dan mengecil di HP */
+  }
+
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .title { font-size: 20px; font-weight: bold; color: var(--text-primary); }
+  .stats { display: flex; gap: 10px; }
+  .stat { 
+    background: var(--bg-card); 
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md); 
+    padding: 6px 12px; 
+    font-size: 14px; 
+    font-weight: bold;
+  }
+  .stat-correct { color: var(--success); }
+  .stat-wrong { color: var(--danger); }
+  .stat-progress { color: var(--accent); }
+
+  .progress-bar { height: 6px; background: var(--bg-card); border-radius: 6px; margin-bottom: 1.5rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--success); border-radius: 6px; transition: width 0.4s ease; }
+
+  .filter-row { display: flex; gap: 10px; margin-bottom: 1.25rem; align-items: center; flex-wrap: wrap; background: var(--bg-card); padding: 10px; border-radius: var(--border-radius-md); }
+  .filter-label { font-size: 14px; color: var(--text-secondary); }
+  select { 
+    font-size: 14px; padding: 8px 12px; border: 1px solid var(--border-color); 
+    border-radius: var(--border-radius-md); background: var(--bg-body); color: var(--text-primary); cursor: pointer; outline: none;
+  }
+
+  /* Gaya Dasar Tombol */
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+  }
+  button:active {
+    transform: translateY(2px); /* Efek ditekan */
+  }
+
+  .mode-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .mode-btn { 
+    padding: 8px 16px; font-size: 14px; font-weight: 500;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-md); 
+    background: var(--bg-card); color: var(--text-secondary); 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .mode-btn.active { background: var(--accent); color: white; border-color: var(--accent-hover); box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); }
+  .mode-btn:hover:not(.active) { background: var(--bg-hover); color: var(--text-primary); }
+
+  #restart-top { margin-left: auto; background: var(--danger); color: white; border-color: var(--danger); }
+  #restart-top:hover { filter: brightness(1.1); }
+
+  .card { 
+    background: var(--bg-card); 
+    border-radius: var(--border-radius-lg); 
+    padding: 2.5rem 1.5rem; text-align: center; margin-bottom: 1.5rem; 
+    min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  }
+  .kanji-big { font-size: 80px; line-height: 1; color: white; font-weight: bold; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+  .hari-badge { font-size: 12px; font-weight: bold; color: var(--accent); background: rgba(59, 130, 246, 0.15); padding: 5px 12px; border-radius: 20px; }
+  .hint { font-size: 15px; color: var(--text-secondary); font-style: italic; }
+  .word-display { font-size: 28px; color: white; font-weight: 600; }
+
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+  .opt { 
+    background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 12px; 
+    padding: 16px 12px; font-size: 16px; font-weight: 500; color: var(--text-primary); 
+    min-height: 70px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  }
+  .opt:hover:not(.disabled) { background: var(--bg-hover); border-color: var(--text-muted); transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.3); }
+  .opt.correct { background: rgba(16, 185, 129, 0.2); border-color: var(--success); color: var(--success); box-shadow: none; }
+  .opt.wrong { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); color: var(--danger); box-shadow: none; }
+  .opt.disabled { cursor: default; transform: none; }
+
+  .feedback { padding: 14px 16px; border-radius: var(--border-radius-md); font-size: 15px; font-weight: bold; margin-bottom: 1.5rem; display: none; text-align: center; }
+  .feedback.show { display: block; animation: fadeIn 0.3s ease; }
+  .feedback.ok { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+  .feedback.bad { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid var(--danger); }
+
+  .next-btn { 
+    width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border-radius: var(--border-radius-md); 
+    background: var(--accent); color: white; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); display: none; 
+  }
+  .next-btn.show { display: block; animation: fadeIn 0.3s ease; }
+  .next-btn:hover { background: var(--accent-hover); }
+
+  .result-box { background: var(--bg-card); border-radius: var(--border-radius-lg); padding: 3rem 2rem; text-align: center; display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+  .result-box.show { display: block; animation: fadeIn 0.5s ease; }
+  .result-score { font-size: 56px; font-weight: bold; color: white; margin: 1rem 0; }
+  .result-label { font-size: 18px; color: var(--text-secondary); margin-bottom: 2rem; }
+  
+  .restart-btn { 
+    padding: 12px 24px; border-radius: var(--border-radius-md); font-size: 15px; font-weight: bold; 
+    background: var(--bg-hover); color: white; border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  }
+  .restart-btn:hover { background: var(--border-color); }
+  #ask-weak { background: var(--accent); color: white; border-color: var(--accent); }
+  #ask-weak:hover { background: var(--accent-hover); }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Responsif untuk layar HP kecil */
+  @media (max-width: 480px) {
+    .options { grid-template-columns: 1fr; }
+    .kanji-big { font-size: 64px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 15px; }
+    #restart-top { margin-left: 0; width: 100%; margin-top: 10px; padding: 10px; }
+  }
 </style>
+</head>
+<body>
 
 <div class="quiz-wrap">
-  <h2 class="sr-only">Kuis Kanji JLPT N3 interaktif</h2>
+  <h2 class="sr-only" style="display:none;">Kuis Kanji JLPT N3 interaktif</h2>
   <div class="header">
-    <div class="title">Kuis Kanji N3</div>
+    <div class="title">⛩️ Kuis Kanji N3</div>
     <div class="stats">
-      <div class="stat">✓ <span id="correct-count">0</span></div>
-      <div class="stat">✗ <span id="wrong-count">0</span></div>
-      <div class="stat"><span id="q-num">1</span>/<span id="q-total">20</span></div>
+      <div class="stat stat-correct">✓ <span id="correct-count">0</span></div>
+      <div class="stat stat-wrong">✗ <span id="wrong-count">0</span></div>
+      <div class="stat stat-progress"><span id="q-num">1</span>/<span id="q-total">20</span></div>
     </div>
   </div>
 
@@ -67,7 +178,7 @@ select { font-size: 13px; padding: 6px 10px; border: 0.5px solid var(--color-bor
       <option value="30">30</option>
       <option value="50">50</option>
     </select>
-    <button class="mode-btn" id="restart-top" style="margin-left:auto">Mulai Ulang</button>
+    <button class="mode-btn" id="restart-top">Mulai Ulang</button>
   </div>
 
   <div class="mode-tabs">
@@ -91,10 +202,10 @@ select { font-size: 13px; padding: 6px 10px; border: 0.5px solid var(--color-bor
   </div>
 
   <div class="result-box" id="result-box">
-    <div style="font-size:15px;color:var(--color-text-secondary);margin-bottom:8px">Skor Akhir</div>
+    <div style="font-size:16px;color:var(--text-secondary);margin-bottom:8px;font-weight:bold;">Skor Akhir</div>
     <div class="result-score" id="result-score">0/20</div>
     <div class="result-label" id="result-label"></div>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem">
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:1rem">
       <button class="restart-btn" id="restart-btn">Ulangi kuis ini</button>
       <button class="restart-btn" id="ask-weak">Lihat yang salah ↗</button>
     </div>
@@ -108,7 +219,7 @@ const ALL_KANJI = [
   {k:"非",m:"tidak/bukan",r:"HI",ex:"非常・非常口",hari:3},{k:"常",m:"normal/biasa",r:"JOU",ex:"日常・正常",hari:3},{k:"階",m:"lantai",r:"KAI",ex:"階段・〇〇階",hari:3},{k:"段",m:"tangga",r:"DAN",ex:"階段",hari:3},{k:"危",m:"bahaya",r:"KI / abunai",ex:"危ない・危険",hari:3},{k:"険",m:"bahaya/terjal",r:"KEN",ex:"危険・険しい",hari:3},{k:"箱",m:"kotak",r:"hako",ex:"箱・ごみ箱",hari:3},{k:"捨",m:"membuang",r:"suteru",ex:"捨てる",hari:3},
   {k:"線",m:"garis",r:"SEN",ex:"線・番線",hari:4},{k:"面",m:"permukaan/layar",r:"MEN",ex:"画面・全面",hari:4},{k:"普",m:"biasa",r:"FU",ex:"普通",hari:4},{k:"各",m:"setiap/masing",r:"KAKU",ex:"各駅・各自",hari:4},{k:"快",m:"menyenangkan/cepat",r:"KAI",ex:"快速・快適",hari:4},{k:"速",m:"cepat",r:"SOKU / hayai",ex:"速い・速度",hari:4},{k:"次",m:"berikutnya",r:"JI / tsugi",ex:"次・次回",hari:4},{k:"過",m:"lewat/lebih",r:"KA / sugiru",ex:"過ぎる・過去",hari:4},{k:"鉄",m:"besi",r:"TETSU",ex:"鉄道・地下鉄",hari:4},
   {k:"指",m:"jari",r:"SHI / yubi",ex:"指・指輪",hari:5},{k:"定",m:"menentukan",r:"TEI",ex:"安定・指定席",hari:5},{k:"席",m:"kursi",r:"SEKI",ex:"席・出席",hari:5},{k:"由",m:"bebas/alasan",r:"YUU",ex:"自由・理由",hari:5},{k:"窓",m:"jendela",r:"mado",ex:"窓・窓口",hari:5},{k:"側",m:"sisi",r:"kawa",ex:"窓側・右側",hari:5},{k:"路",m:"jalan",r:"RO",ex:"道路・通路",hari:5},{k:"番",m:"nomor/urutan",r:"BAN",ex:"番号・番線",hari:5},
-  {k:"停",m:"berhenti",r:"TEI",ex:"停車・バス停",hari:6},{k:"整",m:"menata",r:"SEI",ex:"整理・整理券",hari:6},{k:"券",m:"tiket",r:"KEN",ex:"乗車券・回数券",hari:6},{k:"現",m:"muncul/sekarang",r:"GEN / arawareru",ex:"現れる・現金",hari:6},{k:"両",m:"keduanya",r:"RYOU",ex:"両親・両替",hari:6},{k:"替",m:"menukar",r:"kaeru",ex:"両替・着替える",hari:6},{k:"優",m:"baik hati/lembut",r:"YUU / yasashii",ex:"優しい・優先席",hari:6},{k:"座",m:"duduk",r:"ZA / suwaru",ex:"座る・座席",hari:6},{k:"降",m:"turun",r:"KOU / oriru",ex:"降りる・降る",hari:6},
+  {k:"停",m:"berhenti",r:"TEI",ex:"停車・バス停",hari:6},{k:"整",m:"menata",r:"SEI",ex:"整理・整理券",hari:6},{k:"券",m:"tiket",r:"KEN",ex:"乗車券・回数券",hari:6},{k:"现",m:"muncul/sekarang",r:"GEN / arawareru",ex:"現れる・現金",hari:6},{k:"両",m:"keduanya",r:"RYOU",ex:"両親・両替",hari:6},{k:"替",m:"menukar",r:"kaeru",ex:"両替・着替える",hari:6},{k:"優",m:"baik hati/lembut",r:"YUU / yasashii",ex:"優しい・優先席",hari:6},{k:"座",m:"duduk",r:"ZA / suwaru",ex:"座る・座席",hari:6},{k:"降",m:"turun",r:"KOU / oriru",ex:"降りる・降る",hari:6},
   {k:"未",m:"belum",r:"MI",ex:"未来・未定",hari:7},{k:"末",m:"akhir",r:"MATSU",ex:"週末・年末",hari:7},{k:"若",m:"muda",r:"wakai",ex:"若い",hari:7},{k:"晩",m:"malam",r:"BAN",ex:"晩ごはん・今晩",hari:7},{k:"皿",m:"piring",r:"sara",ex:"皿・灰皿",hari:7},{k:"血",m:"darah",r:"KETSU / chi",ex:"血・出血",hari:7},{k:"島",m:"pulau",r:"TOU / shima",ex:"島・〇〇島",hari:7},{k:"助",m:"pertolongan",r:"JO / tasukeru",ex:"助ける・救助",hari:7},
   {k:"準",m:"semi/persiapan",r:"JUN",ex:"準備",hari:8},{k:"備",m:"persiapan",r:"BI / sonaeru",ex:"準備・備える",hari:8},{k:"営",m:"beroperasi",r:"EI",ex:"営業",hari:8},{k:"閉",m:"tutup",r:"HEI / shimeru",ex:"閉める・閉まる",hari:8},{k:"案",m:"usul/rencana",r:"AN",ex:"案・案内",hari:8},{k:"内",m:"dalam",r:"NAI / uchi",ex:"国内・案内",hari:8},{k:"予",m:"sebelumnya",r:"YO",ex:"予定・予習",hari:8},{k:"約",m:"kira-kira/janji",r:"YAKU",ex:"予約・約束",hari:8},
   {k:"煙",m:"asap",r:"EN / kemuri",ex:"煙・禁煙",hari:9},{k:"当",m:"terkena/tepat",r:"TOU / ataru",ex:"本当・当たり前",hari:9},{k:"全",m:"semua",r:"ZEN",ex:"全部・全席",hari:9},{k:"客",m:"tamu",r:"KYAKU",ex:"客・お客様",hari:9},{k:"様",m:"keadaan/tuan",r:"YOU / sama",ex:"様子・お客様",hari:9},{k:"解",m:"memecahkan",r:"KAI",ex:"理解・解答",hari:9},{k:"協",m:"kerjasama",r:"KYOU",ex:"協力",hari:9},{k:"願",m:"memohon",r:"negau",ex:"願う",hari:9},
@@ -317,11 +428,11 @@ function showResult() {
   document.getElementById("result-score").textContent = correct + "/" + questions.length;
   document.getElementById("progress").style.width = "100%";
   const pct = Math.round((correct / questions.length) * 100);
-  const labels = ["Tetap semangat! 💪", "Lumayan, terus berlatih!", "Bagus sekali! 🌸", "Luar biasa! ほぼ完璧！✨"];
+  const labels = ["Tetap semangat! 💪", "Lumayan, terus berlatih! 👍", "Bagus sekali! 🌸", "Luar biasa! ほぼ完璧！✨"];
   document.getElementById("result-label").textContent = pct < 50 ? labels[0] : pct < 70 ? labels[1] : pct < 90 ? labels[2] : labels[3];
   document.getElementById("ask-weak").onclick = () => {
     const wl = wrongList.map(w => w.k + " (" + w.m + ")").join(", ");
-    sendPrompt("Tolong jelaskan lebih detail kanji-kanji ini yang aku salah: " + wl);
+    alert("Kamu bisa mempelajari lagi kanji berikut:\n\n" + wl);
   };
 }
 
@@ -352,3 +463,5 @@ document.querySelectorAll(".mode-btn[data-mode]").forEach(btn => {
 buildQuestions();
 render();
 </script>
+</body>
+</html>
